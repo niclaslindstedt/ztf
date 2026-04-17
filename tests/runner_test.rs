@@ -263,7 +263,7 @@ name = "reads stdin"
 "#,
     );
     let report = ztest::run(&[spec(path)]).await.unwrap();
-    assert!(report.all_passed(), "report: {:?}", report);
+    assert!(report.all_passed(), "report: {report:?}");
 }
 
 #[tokio::test]
