@@ -50,8 +50,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.88.0
       - run: cargo build --release
       - run: cargo test
-      # Publishing MUST use crates.io trusted publishing (OIDC).
-      # Configure the crate on crates.io first, then uncomment:
+      # Publishing MUST use crates.io trusted publishing (OIDC) per OSS_SPEC §10.3.
+      # Publishing is intentionally NOT yet wired up — the crate must first be
+      # registered on crates.io with trusted publishing configured.
+      # To enable: register the crate, configure OIDC trusted publishing on crates.io,
+      # then uncomment the steps below.
       # - uses: rust-lang/crates-io-auth-action@v1
       #   id: auth
       # - run: cargo publish

@@ -3,6 +3,7 @@
 A Rust CLI for agent-assisted end-to-end testing using TOML scenario files with arrange/act/assert stages and AI-powered final verification.
 
 [![CI](https://github.com/niclaslindstedt/ztest/actions/workflows/ci.yml/badge.svg)](https://github.com/niclaslindstedt/ztest/actions/workflows/ci.yml)
+[![crates.io](https://img.shields.io/crates/v/ztest.svg)](https://crates.io/crates/ztest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## Why?
@@ -88,7 +89,17 @@ See [`examples/`](examples/) for runnable demos.
 
 ## Troubleshooting
 
-_Common failure modes and fixes._
+**Agent provider not found** — `agent_review` scenarios fail with a "command not found" or provider error.
+Install a zag-supported provider (e.g. the `claude` CLI) and make sure it is on `PATH`. You can verify
+with `which claude`. Scenarios without `agent_review` blocks are unaffected.
+
+**TOML parse error on startup** — `ztest run` exits immediately with a parse error.
+Check the scenario file for missing quotes, incorrect table headers (use `[[scenario]]`, not `[scenario]`),
+or mismatched brackets. Run `taplo lint <file>.toml` for structured diagnostics.
+
+**Non-zero exit from `[setup]` block** — the entire file is skipped and reported as a setup error.
+The setup error message appears in both human and JSON output. Fix the failing setup command; all
+scenarios in that file are blocked until setup succeeds.
 
 ## Documentation
 
