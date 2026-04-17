@@ -39,14 +39,14 @@ async fn stdin_is_echoed_by_cat() {
 async fn empty_stdin_closes_pipe_without_hanging() {
     let tmp = TempDir::new().unwrap();
     let env = env_with_tmp(&tmp);
-    // `head -c 0` reads zero bytes then exits — if stdin weren't closed, the
-    // command could still return immediately, but this exercises the Some("")
-    // code path.
-    let out = run_command("head -c 0 && printf done", tmp.path(), &env, Some(""))
+    // `cat` with an empty pipe reads EOF immediately and exits 0, proving the
+    // `Some("")` path closes stdin instead of blocking. Portable across BSD
+    // and GNU userlands (unlike `head -c 0`, which BSD head rejects).
+    let out = run_command("cat && printf done", tmp.path(), &env, Some(""))
         .await
         .unwrap();
-    assert!(out.success());
-    assert!(out.stdout.contains("done"));
+    assert!(out.success(), "exit={} stderr={}", out.exit_code, out.stderr);
+    assert_eq!(out.stdout, "done");
 }
 
 #[tokio::test]
