@@ -18,6 +18,7 @@ coverage/
 website/node_modules/
 website/dist/
 website/src/generated/
+website/package-lock.json
 
 # Generated docs
 docs/_build/

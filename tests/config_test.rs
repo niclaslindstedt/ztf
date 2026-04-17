@@ -45,6 +45,56 @@ name = "hello"
 }
 
 #[test]
+fn act_stdin_field_parses() {
+    let toml = r#"
+[[scenario]]
+name = "reads stdin"
+
+  [scenario.act]
+  command = "cat"
+  stdin   = "alice\n"
+"#;
+    let parsed = config::parse(toml).expect("parse");
+    assert_eq!(
+        parsed.scenarios[0].act.stdin.as_deref(),
+        Some("alice\n"),
+        "stdin should deserialise verbatim"
+    );
+}
+
+#[test]
+fn act_stdin_defaults_to_none() {
+    let toml = r#"
+[[scenario]]
+name = "no stdin"
+
+  [scenario.act]
+  command = "true"
+"#;
+    let parsed = config::parse(toml).expect("parse");
+    assert!(parsed.scenarios[0].act.stdin.is_none());
+}
+
+#[test]
+fn act_stdin_multiline_preserves_newlines() {
+    let toml = "
+[[scenario]]
+name = \"multi\"
+
+  [scenario.act]
+  command = \"cat\"
+  stdin   = \"\"\"line one
+line two
+\"\"\"
+";
+    let parsed = config::parse(toml).expect("parse");
+    assert_eq!(
+        parsed.scenarios[0].act.stdin.as_deref(),
+        Some("line one\nline two\n")
+    );
+}
+
+#[test]
 fn scenario_without_asserts_or_agent_parses() {
     let toml = r#"
 [[scenario]]

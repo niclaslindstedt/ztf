@@ -5,7 +5,7 @@
 ## Synopsis
 
 ```
-ztest run <PATHS>... [--format human|json]
+ztest run <PATH[::SCENARIO]>... [--format human|json]
 ```
 
 ## Description
@@ -23,8 +23,24 @@ A TOML file may also declare top-level `[setup]` and `[teardown]` blocks that ru
 
 | Command | Description |
 |---|---|
-| `run <PATHS>...` | Run every scenario in the given files or directories (recursed for `*.toml`). |
-| `help`           | Show help text. |
+| `run <PATH[::SCENARIO]>...` | Run scenarios from the given files or directories (recursed for `*.toml`). Append `::<scenario>` to a file path to run only the named scenario. |
+| `help`                      | Show help text. |
+
+## Scenario selection
+
+Append `::<scenario>` to a file path to run a single scenario from that file:
+
+```
+ztest run tests/smoke.toml::greets_user
+ztest run 'tests/smoke.toml::greets a user by name'   # quote for spaces
+```
+
+Splitting happens on the **first** `::`, so scenario names may contain `::`.
+Paths containing `::` are unsupported. The `::` suffix is only valid on a
+single `.toml` file — combining it with a directory path is a usage error.
+File-level `[setup]` and `[teardown]` still run; only the scenario list is
+narrowed. If no scenario matches the name, the file reports a `filter_error`
+and the exit code is `1`.
 
 ## Flags
 
@@ -33,6 +49,16 @@ A TOML file may also declare top-level `[setup]` and `[teardown]` blocks that ru
 | `--format` | `human` \| `json` | `human` | Output format. |
 | `--version` | bool | false | Print version and exit. |
 | `--help`    | bool | false | Print help and exit. |
+
+## Scenario fields
+
+| Key | Type | Meaning |
+|---|---|---|
+| `name` | string | Required scenario label. Used for the `::` filter. |
+| `arrange.commands` | list of strings | Shell commands run before `act`. |
+| `act.command` | string | The single command under test. Its stdout, stderr, and exit code are captured. |
+| `act.stdin` | string (optional) | Bytes piped to `act.command` on stdin. Written verbatim — no shell expansion. Absence means no pipe is attached (stdin reads from `/dev/null`). |
+| `agent_review` | table (optional) | Natural-language prompt + optional `provider` / `model` overrides. |
 
 ## Assertions
 
@@ -57,7 +83,7 @@ The agent review is skipped if any programmatic assertion fails.
 | Code | Meaning |
 |---|---|
 | 0 | All scenarios passed |
-| 1 | At least one scenario failed |
+| 1 | At least one scenario failed, or a `::scenario` filter matched nothing |
 | 2 | Usage error |
 
 ## Examples
@@ -65,6 +91,7 @@ The agent review is skipped if any programmatic assertion fails.
 ```sh
 ztest run tests/smoke.toml
 ztest run tests/ --format=json | jq .summary
+ztest run 'tests/smoke.toml::greets a user by name'
 ```
 
 ## See also

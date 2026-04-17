@@ -1,0 +1,3 @@
+# Force LF line endings on text files across all platforms so TOML string
+# literals embedded in Rust sources stay byte-identical on Windows.
+* text=auto eol=lf

@@ -37,11 +37,9 @@ Write a scenario file:
 [[scenario]]
 name = "greets a user"
 
-  [scenario.arrange]
-  commands = ["echo 'alice' > name.txt"]
-
   [scenario.act]
-  command = "cat name.txt | ./greet.sh"
+  command = "./greet.sh"
+  stdin   = "alice\n"
 
   [scenario.assert]
   exit_code       = 0
@@ -56,6 +54,7 @@ Run it:
 ```sh
 ztest run tests/smoke.toml
 ztest run tests/ --format=json | jq .summary
+ztest run 'tests/smoke.toml::greets a user'   # run one scenario by name
 ```
 
 Exit code is `0` if every scenario passed, `1` otherwise.
@@ -63,14 +62,17 @@ Exit code is `0` if every scenario passed, `1` otherwise.
 ## Usage
 
 ```
-ztest run <paths>...        Run one or more TOML scenario files or directories (recursed for *.toml).
-    --format human|json     Output format (default: human).
+ztest run <path[::scenario]>...   Run scenarios from one or more TOML files or directories
+                                  (recursed for *.toml). Append `::<scenario>` to a file path
+                                  to run only the named scenario.
+    --format human|json           Output format (default: human).
 ```
 
-Each scenario supports four blocks: `arrange` (setup commands), `act` (the single command under test),
-`assert` (programmatic checks: `exit_code`, `stdout_contains`, `stderr_contains`, `file_exists`,
-`file_contains`), and an optional `agent_review` with a free-form prompt for the AI verifier. A file may
-also declare top-level `[setup]` and `[teardown]` command blocks that run once per file.
+Each scenario supports four blocks: `arrange` (setup commands), `act` (the single command under test;
+its `stdin` field pipes text to the command on stdin), `assert` (programmatic checks: `exit_code`,
+`stdout_contains`, `stderr_contains`, `file_exists`, `file_contains`), and an optional `agent_review`
+with a free-form prompt for the AI verifier. A file may also declare top-level `[setup]` and
+`[teardown]` command blocks that run once per file.
 
 The runner creates a fresh temp directory per file and uses it as the working directory for every
 `setup`, `arrange`, `act`, and `teardown` command, so plain relative paths like `./greet.sh` and

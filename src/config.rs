@@ -45,6 +45,10 @@ pub struct Arrange {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Act {
     pub command: String,
+    /// Text piped to the command's stdin. Written verbatim (no shell expansion).
+    /// `None` attaches no pipe; `Some("")` closes stdin immediately after open.
+    #[serde(default)]
+    pub stdin: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default)]
