@@ -192,13 +192,19 @@ async fn scenario_filter_still_runs_setup_and_teardown() {
     let outer = TempDir::new().unwrap();
     let marker = outer.path().join("setup-ran");
     let teardown_marker = outer.path().join("teardown-ran");
+    // Forward-slash paths so Git Bash on Windows doesn't eat the backslashes
+    // as shell escapes; single-quoted TOML literal strings to avoid TOML's
+    // own `\U` escape processing. Rust's `Path::exists` accepts either slash
+    // direction on Windows, so `marker.exists()` still finds the file.
+    let setup = marker.display().to_string().replace('\\', "/");
+    let teardown = teardown_marker.display().to_string().replace('\\', "/");
     let toml = format!(
         r#"
 [setup]
-commands = ["touch {setup}"]
+commands = ['touch {setup}']
 
 [teardown]
-commands = ["touch {teardown}"]
+commands = ['touch {teardown}']
 
 [[scenario]]
 name = "first"
@@ -214,8 +220,6 @@ name = "second"
   [scenario.assert]
   exit_code = 0
 "#,
-        setup = marker.display(),
-        teardown = teardown_marker.display(),
     );
     let path = write_scenario(outer.path(), "st.toml", &toml);
     let report = ztest::run(&[spec_with(path, "second")]).await.unwrap();

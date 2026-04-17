@@ -27,13 +27,16 @@ jobs:
           set +e
           cargo test --all --no-fail-fast -- --nocapture 2>&1 | tee test-output.log
           status=${PIPESTATUS[0]}
-          echo "== summary of failures =="
-          grep -E "test result:|^test .* \.\.\. FAILED|^thread .* panicked|^---- .* stdout ----" test-output.log | while IFS= read -r line; do
-            # Emit every failure-signalling line as a GH error annotation so
-            # the check-runs API exposes it without requiring admin log access.
-            clean=$(printf '%s' "$line" | sed 's/%/%25/g;s/\r/%0D/g')
-            echo "::error::$clean"
-          done
+          if [ $status -ne 0 ]; then
+            echo "== summary of failures =="
+            # Only emit `::error::` annotations when a test actually failed,
+            # since a single `::error::` command marks the whole step failed
+            # in GitHub's UI even if the exit code is 0.
+            grep -E '^test .+ \.\.\. FAILED$|^thread .+ panicked|^---- .+ stdout ----|^test result: FAILED' test-output.log | while IFS= read -r line; do
+              clean=$(printf '%s' "$line" | sed 's/%/%25/g;s/\r/%0D/g')
+              echo "::error::$clean"
+            done
+          fi
           exit $status
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo fmt --all -- --check
