@@ -10,7 +10,7 @@ cd ztest
 make install
 ```
 
-`ztest` depends on the `zag-agent` crate by path (`../zag/zag-agent`), so clone [zag](https://github.com/niclaslindstedt/zag) next to this checkout. For the `agent_review` step to succeed at runtime you also need a zag-supported provider binary on `PATH` (e.g. the `claude` CLI).
+For the `agent_review` step to succeed at runtime you need a zag-supported provider binary on `PATH` (e.g. the `claude` CLI). The `zag-agent` crate itself is resolved from crates.io.
 
 ## First run
 

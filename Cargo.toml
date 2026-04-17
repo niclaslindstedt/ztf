@@ -24,4 +24,4 @@ serde_json = "1"
 tempfile = "3"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "process", "fs", "io-util"] }
 toml = "0.8"
-zag-agent = { path = "../zag/zag-agent" }
+zag-agent = "0.13"

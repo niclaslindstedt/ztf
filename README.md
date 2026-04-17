@@ -17,7 +17,7 @@ A Rust CLI for agent-assisted end-to-end testing using TOML scenario files with 
 ## Prerequisites
 
 - Rust 1.88+ (edition 2024)
-- A sibling checkout of [zag](https://github.com/niclaslindstedt/zag) at `../zag` — `ztest` depends on `zag-agent` via path. For the `agent_review` step to actually run you also need one of zag's supported providers on `PATH` (e.g. the `claude` CLI).
+- For the `agent_review` step to actually run, a zag-supported provider must be on `PATH` (e.g. the `claude` CLI). The `zag-agent` crate is pulled in from crates.io automatically.
 
 ## Install
 
