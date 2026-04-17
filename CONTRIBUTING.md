@@ -5,7 +5,9 @@ environment, the conventions we follow, and how to get a change merged.
 
 ## Prerequisites
 
-- _Exact tooling versions._
+- **Rust 1.88+** (edition 2024) — install via [rustup](https://rustup.rs/). Cargo is included; no separate install needed.
+- **make** — available by default on macOS and most Linux distros; on Windows use WSL or Git Bash.
+- **A zag-supported LLM provider on PATH** (e.g. the `claude` CLI) — required only to exercise `agent_review` scenarios locally. Tests that don't use `agent_review` run without it.
 
 ## Getting the source
 
@@ -39,7 +41,21 @@ make fmt-check
 
 ## Tests
 
-_Where tests live, what coverage is expected, how to run a single test._
+Tests live in `tests/` and follow the `*_test.rs` naming convention (e.g. `assertions_test.rs`).
+Never add `#[cfg(test)]` blocks to source files — all test code goes in separate files.
+
+Run the full suite:
+```sh
+make test          # cargo test
+```
+
+Run a single test by name:
+```sh
+cargo test <test_name>
+```
+
+No coverage gate is enforced yet, but every new code path should have at least one integration test
+in the relevant `tests/*_test.rs` file.
 
 ## Documentation
 

@@ -151,7 +151,21 @@ config keys| `docs/configuration.md`
 
 ## Parity / cross-cutting rules
 
-_Any rule that spans multiple files (e.g. keeping bindings in sync)._
+- **New assertion kind** — adding a field to `Assert` in `src/config.rs` requires a matching arm in `src/assertions.rs`, a test case in `tests/assertions_test.rs`, and a row in the `man/main.md` Assertions table. All four must land in the same PR.
+- **CLI flag or subcommand** — any change to `src/cli.rs` must be mirrored in `man/main.md` and the README Usage section before merge.
+- **Report JSON shape** — the shape documented in the "Report JSON contract" section above must stay in sync with `src/report.rs`. Any structural change is user-visible and needs a matching doc update.
+- **New stage / block** — schema (`src/config.rs`), runner wiring (`src/runner.rs`), and documentation (`man/main.md`, `README.md`, `docs/getting-started.md`) must all be updated together.
+
+## Website staleness policy
+
+Per §11.2 of `OSS_SPEC.md`, the marketing/documentation website must be regenerated whenever source-derived content changes. Run `make website` (which chains `npm run extract && vite build`) whenever any of the following change:
+
+- CLI flags or subcommands (`src/cli.rs`)
+- Configuration keys or TOML schema (`src/config.rs`)
+- Supported platforms or install instructions (`README.md`)
+- Example scenario snippets (`examples/`)
+
+The `pages` CI job enforces this on every PR by verifying the built site is up-to-date.
 
 ## Maintenance skills
 
