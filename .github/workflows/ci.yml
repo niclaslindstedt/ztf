@@ -21,6 +21,19 @@ jobs:
         with:
           components: clippy, rustfmt
       - run: cargo build --all-targets
-      - run: cargo test --all
+      - name: cargo test
+        shell: bash
+        run: |
+          set +e
+          cargo test --all --no-fail-fast -- --nocapture 2>&1 | tee test-output.log
+          status=${PIPESTATUS[0]}
+          echo "== summary of failures =="
+          grep -E "test result:|^test .* \.\.\. FAILED|^thread .* panicked|^---- .* stdout ----" test-output.log | while IFS= read -r line; do
+            # Emit every failure-signalling line as a GH error annotation so
+            # the check-runs API exposes it without requiring admin log access.
+            clean=$(printf '%s' "$line" | sed 's/%/%25/g;s/\r/%0D/g')
+            echo "::error::$clean"
+          done
+          exit $status
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo fmt --all -- --check
