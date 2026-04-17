@@ -1,0 +1,37 @@
+# Demo scenario — run from the repo root:
+#   cargo run -- run examples/greet.toml
+#
+# Every command runs with cwd set to a fresh per-file temp directory, so
+# plain relative paths like ./greet.sh and name.txt Just Work. The same
+# directory is also exported as $ZTEST_TMP — handy if your command
+# cd's elsewhere and later needs to point back at it.
+#
+# The [scenario.agent_review] block needs a working zag provider
+# (e.g. the `claude` CLI on PATH). Remove that block for a fully offline run.
+
+[[scenario]]
+name = "greets a user by name"
+
+  [scenario.arrange]
+  commands = [
+'''
+cat > greet.sh <<'SCRIPT'
+#!/bin/sh
+name=$(cat)
+printf 'Hello, %s\n' "$name"
+SCRIPT
+chmod +x greet.sh
+''',
+    "echo 'alice' > name.txt",
+  ]
+
+  [scenario.act]
+  command = "cat name.txt | ./greet.sh"
+
+  [scenario.assert]
+  exit_code       = 0
+  stdout_contains = ["Hello, alice"]
+  file_exists     = ["name.txt", "greet.sh"]
+
+  [scenario.agent_review]
+  prompt = "Does the program politely greet the user by their name? Pass if yes."
