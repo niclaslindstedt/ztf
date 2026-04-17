@@ -1,0 +1,19 @@
+[package]
+name = "ztest"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+description = "A Rust CLI for agent-assisted end-to-end testing using TOML scenario files with arrange/act/assert stages and AI-powered final verification."
+repository = "https://github.com/niclaslindstedt/ztest"
+readme = "README.md"
+
+[[bin]]
+name = "ztest"
+path = "src/main.rs"
+
+[lib]
+name = "ztest"
+path = "src/lib.rs"
+
+[dependencies]
