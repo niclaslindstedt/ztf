@@ -115,15 +115,19 @@ and need a matching doc update and a migration story:
         }
       ],
       "setup_error":    "...",
-      "teardown_error": "..."
+      "teardown_error": "...",
+      "filter_error":   "..."
     }
   ],
   "summary": {"total": 1, "passed": 1, "failed": 0}
 }
 ```
 
-Exit code: `0` if `summary.failed == 0` and no file had a `setup_error`; `1`
-otherwise.
+`filter_error` is populated when the CLI's `path::scenario` filter matched no
+scenario in the file.
+
+Exit code: `0` if `summary.failed == 0` and no file had a `setup_error` or
+`filter_error`; `1` otherwise.
 
 ## Where new code goes
 

@@ -17,6 +17,9 @@ pub struct FileReport {
     pub setup_error: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub teardown_error: Option<String>,
+    /// Set when a `::scenario` filter matched no scenarios in this file.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filter_error: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -54,7 +57,11 @@ impl Report {
     }
 
     pub fn all_passed(&self) -> bool {
-        self.summary.failed == 0 && self.files.iter().all(|f| f.setup_error.is_none())
+        self.summary.failed == 0
+            && self
+                .files
+                .iter()
+                .all(|f| f.setup_error.is_none() && f.filter_error.is_none())
     }
 
     pub fn render_human(&self) -> String {
@@ -63,6 +70,9 @@ impl Report {
             out.push_str(&format!("{}\n", file.path.display()));
             if let Some(err) = &file.setup_error {
                 out.push_str(&format!("  setup failed: {err}\n"));
+            }
+            if let Some(err) = &file.filter_error {
+                out.push_str(&format!("  filter error: {err}\n"));
             }
             for s in &file.scenarios {
                 let mark = if s.passed { "PASS" } else { "FAIL" };
