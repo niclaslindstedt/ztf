@@ -45,7 +45,12 @@ async fn empty_stdin_closes_pipe_without_hanging() {
     let out = run_command("cat && printf done", tmp.path(), &env, Some(""))
         .await
         .unwrap();
-    assert!(out.success(), "exit={} stderr={}", out.exit_code, out.stderr);
+    assert!(
+        out.success(),
+        "exit={} stderr={}",
+        out.exit_code,
+        out.stderr
+    );
     assert_eq!(out.stdout, "done");
 }
 
