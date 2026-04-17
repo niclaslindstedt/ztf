@@ -16,27 +16,71 @@ A Rust CLI for agent-assisted end-to-end testing using TOML scenario files with 
 
 ## Prerequisites
 
-- _List runtime and dev dependencies with explicit version bounds._
+- Rust 1.88+ (edition 2024)
+- For the `agent_review` step to actually run, a zag-supported provider must be on `PATH` (e.g. the `claude` CLI). The `zag-agent` crate is pulled in from crates.io automatically.
 
 ## Install
 
 ```sh
-# end-to-end install command goes here
+git clone https://github.com/niclaslindstedt/ztest
+cd ztest
+make install          # cargo install --path .
 ```
 
 ## Quick start
 
-```sh
-# minimal runnable example
+Write a scenario file:
+
+```toml
+# tests/smoke.toml
+[[scenario]]
+name = "greets a user"
+
+  [scenario.arrange]
+  commands = ["echo 'alice' > name.txt"]
+
+  [scenario.act]
+  command = "cat name.txt | ./greet.sh"
+
+  [scenario.assert]
+  exit_code       = 0
+  stdout_contains = ["Hello, alice"]
+
+  [scenario.agent_review]
+  prompt = "Does the program greet the user politely? Pass if yes."
 ```
+
+Run it:
+
+```sh
+ztest run tests/smoke.toml
+ztest run tests/ --format=json | jq .summary
+```
+
+Exit code is `0` if every scenario passed, `1` otherwise.
 
 ## Usage
 
-_Reference surface — commands, flags, API entry points._
+```
+ztest run <paths>...        Run one or more TOML scenario files or directories (recursed for *.toml).
+    --format human|json     Output format (default: human).
+```
+
+Each scenario supports four blocks: `arrange` (setup commands), `act` (the single command under test),
+`assert` (programmatic checks: `exit_code`, `stdout_contains`, `stderr_contains`, `file_exists`,
+`file_contains`), and an optional `agent_review` with a free-form prompt for the AI verifier. A file may
+also declare top-level `[setup]` and `[teardown]` command blocks that run once per file.
+
+The runner creates a fresh temp directory per file and uses it as the working directory for every
+`setup`, `arrange`, `act`, and `teardown` command, so plain relative paths like `./greet.sh` and
+`name.txt` Just Work. The same directory is also exported as `$ZTEST_TMP` — useful as an anchor when a
+command `cd`'s elsewhere. The agent verdict is skipped when any programmatic assertion fails, so agent
+calls only happen on otherwise-passing scenarios.
 
 ## Configuration
 
-_Config file paths and key names._
+`ztest` itself has no config file. Per-scenario agent overrides (`provider`, `model`) live inside each
+`[scenario.agent_review]` block in the scenario's TOML file.
 
 ## Examples
 
