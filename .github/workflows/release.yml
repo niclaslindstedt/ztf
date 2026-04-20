@@ -38,10 +38,10 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.88.0
 
       - name: Generate changelog
-        run: scripts/generate-changelog.sh "${GITHUB_REF_NAME#v}"
+        run: scripts/generate-changelog.sh "${GITHUB_REF_NAME}"
 
       - name: Update versions
-        run: scripts/update-versions.sh "${GITHUB_REF_NAME#v}"
+        run: scripts/update-versions.sh "${GITHUB_REF_NAME}"
 
       - name: Commit and push
         id: push
