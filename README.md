@@ -1,16 +1,16 @@
-# ztest
+# ztf
 
 A Rust CLI for agent-assisted end-to-end testing using TOML scenario files with arrange/act/assert stages and AI-powered final verification.
 
-[![CI](https://github.com/niclaslindstedt/ztest/actions/workflows/ci.yml/badge.svg)](https://github.com/niclaslindstedt/ztest/actions/workflows/ci.yml)
-[![crates.io](https://img.shields.io/crates/v/ztest.svg)](https://crates.io/crates/ztest)
+[![CI](https://github.com/niclaslindstedt/ztf/actions/workflows/ci.yml/badge.svg)](https://github.com/niclaslindstedt/ztf/actions/workflows/ci.yml)
+[![crates.io](https://img.shields.io/crates/v/ztf.svg)](https://crates.io/crates/ztf)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## Why?
 
 - TOML-native scenario authorship — define setup, commands, scripts, and assertions without writing code
 - Agent-in-the-loop verdicts — delegate nuanced, context-sensitive checks to an AI reviewer instead of brittle regex assertions
-- Structured machine-readable output — every test run emits a parseable result envelope consumed directly by the ztest CLI
+- Structured machine-readable output — every test run emits a parseable result envelope consumed directly by the ztf CLI
 - Global fixtures — shared setup and teardown blocks (temp dirs, seed data, env vars) reused across scenario files
 - First-class arrange/act/assert separation — forces explicit test lifecycle stages, making failures trivially diagnosable
 
@@ -23,8 +23,8 @@ A Rust CLI for agent-assisted end-to-end testing using TOML scenario files with 
 ## Install
 
 ```sh
-git clone https://github.com/niclaslindstedt/ztest
-cd ztest
+git clone https://github.com/niclaslindstedt/ztf
+cd ztf
 make install          # cargo install --path .
 ```
 
@@ -52,9 +52,9 @@ name = "greets a user"
 Run it:
 
 ```sh
-ztest run tests/smoke.toml
-ztest run tests/ --format=json | jq .summary
-ztest run 'tests/smoke.toml::greets a user'   # run one scenario by name
+ztf run tests/smoke.toml
+ztf run tests/ --format=json | jq .summary
+ztf run 'tests/smoke.toml::greets a user'   # run one scenario by name
 ```
 
 Exit code is `0` if every scenario passed, `1` otherwise.
@@ -62,7 +62,7 @@ Exit code is `0` if every scenario passed, `1` otherwise.
 ## Usage
 
 ```
-ztest run <path[::scenario]>...   Run scenarios from one or more TOML files or directories
+ztf run <path[::scenario]>...   Run scenarios from one or more TOML files or directories
                                   (recursed for *.toml). Append `::<scenario>` to a file path
                                   to run only the named scenario.
     --format human|json           Output format (default: human).
@@ -76,13 +76,13 @@ with a free-form prompt for the AI verifier. A file may also declare top-level `
 
 The runner creates a fresh temp directory per file and uses it as the working directory for every
 `setup`, `arrange`, `act`, and `teardown` command, so plain relative paths like `./greet.sh` and
-`name.txt` Just Work. The same directory is also exported as `$ZTEST_TMP` — useful as an anchor when a
+`name.txt` Just Work. The same directory is also exported as `$ZTF_TMP` — useful as an anchor when a
 command `cd`'s elsewhere. The agent verdict is skipped when any programmatic assertion fails, so agent
 calls only happen on otherwise-passing scenarios.
 
 ## Configuration
 
-`ztest` itself has no config file. Per-scenario agent overrides (`provider`, `model`) live inside each
+`ztf` itself has no config file. Per-scenario agent overrides (`provider`, `model`) live inside each
 `[scenario.agent_review]` block in the scenario's TOML file.
 
 ## Examples
@@ -95,7 +95,7 @@ See [`examples/`](examples/) for runnable demos.
 Install a zag-supported provider (e.g. the `claude` CLI) and make sure it is on `PATH`. You can verify
 with `which claude`. Scenarios without `agent_review` blocks are unaffected.
 
-**TOML parse error on startup** — `ztest run` exits immediately with a parse error.
+**TOML parse error on startup** — `ztf run` exits immediately with a parse error.
 Check the scenario file for missing quotes, incorrect table headers (use `[[scenario]]`, not `[scenario]`),
 or mismatched brackets. Run `taplo lint <file>.toml` for structured diagnostics.
 

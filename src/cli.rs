@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 #[derive(Debug, Parser)]
-#[command(name = "ztest", version, about = "Agent-assisted end-to-end testing")]
+#[command(name = "ztf", version, about = "Agent-assisted end-to-end testing")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Command,

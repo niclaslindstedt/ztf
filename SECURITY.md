@@ -1,4 +1,4 @@
-# Security policy for ztest
+# Security policy for ztf
 
 ## Supported versions
 
@@ -9,7 +9,7 @@ considered end-of-life.
 
 **Do not open public GitHub issues for security problems.**
 
-Instead, please report privately via [GitHub Security Advisories](https://github.com/niclaslindstedt/ztest/security/advisories/new),
+Instead, please report privately via [GitHub Security Advisories](https://github.com/niclaslindstedt/ztf/security/advisories/new),
 or by email to `nicl@slindstedt.se`.
 
 ## Response
@@ -24,6 +24,6 @@ reporter and credit them in the release notes (unless they request otherwise).
 
 ## Scope
 
-In scope: any vulnerability in the published release of ztest.
+In scope: any vulnerability in the published release of ztf.
 Out of scope: vulnerabilities in third-party dependencies (please report those
 upstream).

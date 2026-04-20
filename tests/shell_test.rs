@@ -1,11 +1,11 @@
 //! Exercise `shell::run_command` directly, including the new stdin parameter.
 use std::collections::HashMap;
 use tempfile::TempDir;
-use ztest::shell::run_command;
+use ztf::shell::run_command;
 
 fn env_with_tmp(tmp: &TempDir) -> HashMap<String, String> {
     let mut env = HashMap::new();
-    env.insert("ZTEST_TMP".into(), tmp.path().display().to_string());
+    env.insert("ZTF_TMP".into(), tmp.path().display().to_string());
     env
 }
 

@@ -5,7 +5,7 @@ description: "Use when the marketing website may be stale. Discovers commits sin
 
 # Updating the Website
 
-The `website/` directory contains the marketing site for `ztest`. Per §11.2 of `OSS_SPEC.md`, its source-derived content (hero copy, feature lists, version strings) must not be authored twice — it is extracted from `README.md`, `docs/`, and `OSS_SPEC.md`, then rendered by the website build.
+The `website/` directory contains the marketing site for `ztf`. Per §11.2 of `OSS_SPEC.md`, its source-derived content (hero copy, feature lists, version strings) must not be authored twice — it is extracted from `README.md`, `docs/`, and `OSS_SPEC.md`, then rendered by the website build.
 
 ## Tracking mechanism
 

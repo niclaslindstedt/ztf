@@ -1,4 +1,4 @@
-# Agent guidance for ztest
+# Agent guidance for ztf
 
 This file is the canonical source of truth for AI coding agents working in this
 repo. `CLAUDE.md`, `.cursorrules`, `.windsurfrules`, `GEMINI.md`,
@@ -34,9 +34,9 @@ make fmt-check     # verify formatting (CI)
   so it must follow conventional-commit format.
 - Breaking changes use `<type>!:` or a `BREAKING CHANGE:` footer.
 
-## What ztest is
+## What ztf is
 
-`ztest` is a Rust CLI that runs agent-assisted end-to-end tests defined in TOML
+`ztf` is a Rust CLI that runs agent-assisted end-to-end tests defined in TOML
 scenario files. Each scenario has four stages — `arrange`, `act`, `assert`, and
 optional `agent_review` — plus file-level `[setup]` / `[teardown]` blocks. The
 runner executes shell commands, evaluates programmatic assertions against their
@@ -60,7 +60,7 @@ but still want a single exit code for CI.
 | `shell.rs` | `run_command(cmd, cwd, env) -> CmdOutput { stdout, stderr, exit_code }` — every command runs via `sh -c` with cwd set to the per-file temp dir. |
 | `assertions.rs` | `evaluate(&Assert, &CmdOutput, cwd, env) -> Vec<AssertionResult>`; handles `$VAR` / `${VAR}` expansion and resolves relative paths against cwd. |
 | `agent.rs` | `verify(&AgentReview, VerifyContext)` — builds a prompt including scenario name, command, exit code, truncated stdout/stderr; calls `zag_agent::builder::AgentBuilder` with a fixed JSON schema `{passed: bool, reasoning: string}`; returns `AgentVerdict`. Failures (transport, schema, parse) become `passed: false` with reasoning carrying the error. |
-| `runner.rs` | Orchestrator: `discover(paths)` → for each file create a fresh `TempDir`, inject `ZTEST_TMP`, run setup → scenarios → teardown, build `Report`. Agent is called only when **all** programmatic assertions pass. |
+| `runner.rs` | Orchestrator: `discover(paths)` → for each file create a fresh `TempDir`, inject `ZTF_TMP`, run setup → scenarios → teardown, build `Report`. Agent is called only when **all** programmatic assertions pass. |
 | `report.rs` | `Report`, `FileReport`, `ScenarioResult`, `Summary`; human (`render_human`) and JSON (`render_json`) renderers; `all_passed()` drives the CLI exit code. |
 
 **Dependency direction** — modules layer cleanly, no cycles:
@@ -77,10 +77,10 @@ main.rs → lib.rs → runner.rs → { config, shell, assertions, agent, report 
 
 **Temp dir contract** (load-bearing): every `setup`, `arrange`, `act`, and
 `teardown` command runs with **cwd = per-file temp dir**. The same path is also
-exported as `$ZTEST_TMP` for commands that `cd` elsewhere and need an anchor.
+exported as `$ZTF_TMP` for commands that `cd` elsewhere and need an anchor.
 `file_exists` / `file_contains` resolve relative paths against that cwd too.
 
-## Extending ztest — where things go
+## Extending ztf — where things go
 
 - **New assertion kind** → add the field to `Assert` in `src/config.rs`, a
   matching arm in `assertions::evaluate` (with an `AssertionResult { kind, ... }`),

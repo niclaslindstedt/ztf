@@ -20,7 +20,7 @@ all shipped changes are tracked here.
 - Programmatic assertions: `exit_code`, `stdout_contains`, `stderr_contains`, `file_exists`, `file_contains`
 - AI-powered verdict via `zag-agent` (called only when all programmatic assertions pass)
 - Human-readable and JSON (`--format=json`) output modes
-- Per-file isolated temp directory (`$ZTEST_TMP`) injected into every command
+- Per-file isolated temp directory (`$ZTF_TMP`) injected into every command
 - `make build / test / lint / fmt / fmt-check` targets
 - GitHub Actions CI and release workflows
 

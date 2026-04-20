@@ -5,7 +5,7 @@ description: "Use when files under man/ may be stale. Discovers commits since th
 
 # Updating the Manpages
 
-`man/` contains the reference-style command documentation shipped with ztest — one markdown file per command. These pages are the authoritative command-level reference and rot whenever a flag, subcommand, or default changes without a matching edit.
+`man/` contains the reference-style command documentation shipped with ztf — one markdown file per command. These pages are the authoritative command-level reference and rot whenever a flag, subcommand, or default changes without a matching edit.
 
 ## Tracking mechanism
 
@@ -37,9 +37,9 @@ description: "Use when files under man/ may be stale. Discovers commits since th
 
 | Changed files / scope | Manpage(s) to update |
 |---|---|
-| CLI parser (new or renamed subcommand) | Top-level `man/ztest.md`; create a new `man/<cmd>.md` if missing |
+| CLI parser (new or renamed subcommand) | Top-level `man/ztf.md`; create a new `man/<cmd>.md` if missing |
 | CLI parser (new flag on existing command) | The corresponding command section |
-| Global flags | `man/ztest.md` Global Flags section |
+| Global flags | `man/ztf.md` Global Flags section |
 | Default values or error messages | The affected command section |
 
 Extend this table every time you find a new source file that feeds the manpages.
@@ -48,7 +48,7 @@ Extend this table every time you find a new source file that feeds the manpages.
 
 Preserve these when editing:
 
-- H1 title matches `ztest man <cmd>` output.
+- H1 title matches `ztf man <cmd>` output.
 - Standard sections in order: Synopsis → Description → Arguments → Flags → Examples → See Also.
 - Synopsis and flag blocks are 4-space indented code blocks (not fenced).
 - See Also entries point at related commands with one-line descriptions.
@@ -67,7 +67,7 @@ Preserve these when editing:
 
 ## Verification
 
-1. Build and run `ztest man <cmd>` for every edited page.
+1. Build and run `ztf man <cmd>` for every edited page.
 2. Compare every flag block against the CLI parser source.
 3. Confirm `.last-updated` was rewritten.
 

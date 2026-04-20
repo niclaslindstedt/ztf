@@ -47,7 +47,7 @@ async fn run_file(path: &Path, file: &TestFile, filter: Option<&str>) -> FileRep
     };
     let cwd = tmp.path().to_path_buf();
     let mut env = HashMap::new();
-    env.insert("ZTEST_TMP".into(), cwd.display().to_string());
+    env.insert("ZTF_TMP".into(), cwd.display().to_string());
 
     let mut setup_error = None;
     if let Some(setup) = &file.setup {

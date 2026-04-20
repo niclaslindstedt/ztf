@@ -1,29 +1,29 @@
-use ztest::config;
+use ztf::config;
 
 #[test]
 fn parses_full_scenario() {
     let toml = r#"
 [setup]
-commands = ["mkdir -p $ZTEST_TMP/work"]
+commands = ["mkdir -p $ZTF_TMP/work"]
 
 [teardown]
-commands = ["rm -rf $ZTEST_TMP/work"]
+commands = ["rm -rf $ZTF_TMP/work"]
 
 [[scenario]]
 name = "hello"
 
   [scenario.arrange]
-  commands = ["echo 'alice' > $ZTEST_TMP/name.txt"]
+  commands = ["echo 'alice' > $ZTF_TMP/name.txt"]
 
   [scenario.act]
-  command = "cat $ZTEST_TMP/name.txt"
+  command = "cat $ZTF_TMP/name.txt"
 
   [scenario.assert]
   exit_code = 0
   stdout_contains = ["alice"]
   stderr_contains = []
-  file_exists = ["$ZTEST_TMP/name.txt"]
-  file_contains = [{ path = "$ZTEST_TMP/name.txt", contains = "alice" }]
+  file_exists = ["$ZTF_TMP/name.txt"]
+  file_contains = [{ path = "$ZTF_TMP/name.txt", contains = "alice" }]
 
   [scenario.agent_review]
   prompt = "Did it greet nicely?"
@@ -35,7 +35,7 @@ name = "hello"
     assert_eq!(parsed.scenarios.len(), 1);
     let s = &parsed.scenarios[0];
     assert_eq!(s.name, "hello");
-    assert_eq!(s.act.command, "cat $ZTEST_TMP/name.txt");
+    assert_eq!(s.act.command, "cat $ZTF_TMP/name.txt");
     let asserts = s.asserts.as_ref().expect("asserts present");
     assert_eq!(asserts.exit_code, Some(0));
     assert_eq!(asserts.stdout_contains, vec!["alice".to_string()]);

@@ -1,6 +1,6 @@
 # Configuration reference
 
-`ztest` has no standalone config file — all configuration lives inside each
+`ztf` has no standalone config file — all configuration lives inside each
 TOML scenario file. This page documents every supported key.
 
 ## Top-level
@@ -18,7 +18,7 @@ TOML scenario file. This page documents every supported key.
 | `commands` | list of strings | `[]` | Shell commands run through `sh -c`, in order. Non-zero exit aborts the stage. |
 
 Both blocks inherit the per-file temp directory as `cwd` and see
-`$ZTEST_TMP` in their environment.
+`$ZTF_TMP` in their environment.
 
 ## `[[scenario]]`
 
@@ -70,8 +70,8 @@ here for discoverability. Append `::<scenario>` to a file path on the command
 line to run only the named scenario:
 
 ```sh
-ztest run tests/smoke.toml::greets_user
-ztest run 'tests/smoke.toml::greets a user by name'
+ztf run tests/smoke.toml::greets_user
+ztf run 'tests/smoke.toml::greets a user by name'
 ```
 
 - Splits on the **first** `::` (scenario names may contain `::`).
@@ -85,4 +85,4 @@ ztest run 'tests/smoke.toml::greets a user by name'
 
 | Variable | Description |
 |---|---|
-| `ZTEST_TMP` | Per-file temp directory. Injected into every `setup`, `arrange`, `act`, and `teardown` command. |
+| `ZTF_TMP` | Per-file temp directory. Injected into every `setup`, `arrange`, `act`, and `teardown` command. |

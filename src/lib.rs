@@ -1,4 +1,4 @@
-//! ztest — agent-assisted end-to-end testing driven by TOML scenario files.
+//! ztf — agent-assisted end-to-end testing driven by TOML scenario files.
 
 pub mod agent;
 pub mod assertions;

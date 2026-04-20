@@ -5,7 +5,7 @@ description: "Use when you want to bring every drift-prone artifact in the repo 
 
 # Maintenance
 
-This is the umbrella skill for ztest. It does no rewriting itself — it decides which sync skills are stale, runs each one, and reports a combined summary. Use it when you do not know which specific artifact is out of date, or when several have likely drifted at once (for example, after a large merge).
+This is the umbrella skill for ztf. It does no rewriting itself — it decides which sync skills are stale, runs each one, and reports a combined summary. Use it when you do not know which specific artifact is out of date, or when several have likely drifted at once (for example, after a large merge).
 
 ## When to run
 

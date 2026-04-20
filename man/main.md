@@ -1,23 +1,23 @@
-# ztest
+# ztf
 
 > A Rust CLI for agent-assisted end-to-end testing using TOML scenario files with arrange/act/assert stages and AI-powered final verification.
 
 ## Synopsis
 
 ```
-ztest run <PATH[::SCENARIO]>... [--format human|json]
+ztf run <PATH[::SCENARIO]>... [--format human|json]
 ```
 
 ## Description
 
-`ztest` reads TOML scenario files and runs them against the local shell. Each scenario has four blocks:
+`ztf` reads TOML scenario files and runs them against the local shell. Each scenario has four blocks:
 
 - `arrange.commands` — setup commands to prepare state.
 - `act.command` — the single command under test. Its stdout, stderr, and exit code are captured.
 - `assert` — programmatic checks applied to `act`'s output and the filesystem.
 - `agent_review` (optional) — a natural-language prompt sent to a zag AI agent for the final verdict.
 
-A TOML file may also declare top-level `[setup]` and `[teardown]` blocks that run once per file. Every run creates a fresh temp directory; that directory becomes the working directory for every `setup`, `arrange`, `act`, and `teardown` command, and is also exported as `$ZTEST_TMP` as an escape hatch when a command `cd`'s elsewhere.
+A TOML file may also declare top-level `[setup]` and `[teardown]` blocks that run once per file. Every run creates a fresh temp directory; that directory becomes the working directory for every `setup`, `arrange`, `act`, and `teardown` command, and is also exported as `$ZTF_TMP` as an escape hatch when a command `cd`'s elsewhere.
 
 ## Subcommands
 
@@ -31,8 +31,8 @@ A TOML file may also declare top-level `[setup]` and `[teardown]` blocks that ru
 Append `::<scenario>` to a file path to run a single scenario from that file:
 
 ```
-ztest run tests/smoke.toml::greets_user
-ztest run 'tests/smoke.toml::greets a user by name'   # quote for spaces
+ztf run tests/smoke.toml::greets_user
+ztf run 'tests/smoke.toml::greets a user by name'   # quote for spaces
 ```
 
 Splitting happens on the **first** `::`, so scenario names may contain `::`.
@@ -67,7 +67,7 @@ and the exit code is `1`.
 | `exit_code` | integer | Required exit code of the `act` command. |
 | `stdout_contains` | list of strings | Each substring must appear in stdout. |
 | `stderr_contains` | list of strings | Each substring must appear in stderr. |
-| `file_exists` | list of paths | Each path must exist after `act`. Supports `$ZTEST_TMP` expansion. |
+| `file_exists` | list of paths | Each path must exist after `act`. Supports `$ZTF_TMP` expansion. |
 | `file_contains` | list of `{path, contains}` | Each named file must contain the substring. |
 
 The agent review is skipped if any programmatic assertion fails.
@@ -76,7 +76,7 @@ The agent review is skipped if any programmatic assertion fails.
 
 | Variable | Description |
 |---|---|
-| `ZTEST_TMP` | Per-file temp directory, injected into every `act`, `arrange`, `setup`, and `teardown` command. |
+| `ZTF_TMP` | Per-file temp directory, injected into every `act`, `arrange`, `setup`, and `teardown` command. |
 
 ## Exit codes
 
@@ -89,9 +89,9 @@ The agent review is skipped if any programmatic assertion fails.
 ## Examples
 
 ```sh
-ztest run tests/smoke.toml
-ztest run tests/ --format=json | jq .summary
-ztest run 'tests/smoke.toml::greets a user by name'
+ztf run tests/smoke.toml
+ztf run tests/ --format=json | jq .summary
+ztf run 'tests/smoke.toml::greets a user by name'
 ```
 
 ## See also
