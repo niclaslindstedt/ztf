@@ -10,58 +10,233 @@ on:
     tags:
       - 'v*'
 
+env:
+  CARGO_TERM_COLOR: always
+  BINARY_NAME: ztf
+
 # Default to no permissions; every job declares its own
 # least-privilege `permissions:` block (see OSS_SPEC §10.3).
 permissions: {}
 
 jobs:
-  release:
+  # Step 1 — regenerate CHANGELOG.md + bump manifest versions, then
+  # force-push the rewritten tag at the generated release commit.
+  update-repo:
+    name: Update changelog and versions
     runs-on: ubuntu-latest
-    # contents: write — this job pushes the release commit and
-    #                   force-pushes the rewritten tag to `main`.
-    # id-token: write — required for OIDC-based trusted publishing
-    #                   to the target registries (see steps below).
-    # For a cleaner setup, split repo-rewrite and publish into
-    # separate jobs so the publish job only needs `contents: read`.
     permissions:
       contents: write
-      id-token: write
+    outputs:
+      commit_sha: ${{ steps.push.outputs.commit_sha }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          ref: main
           token: ${{ secrets.RELEASE_TOKEN }}
-      - name: Resolve tag
-        id: tag
-        run: echo "tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
-      - name: Generate changelog
-        run: ./scripts/generate-changelog.sh ${{ steps.tag.outputs.tag }}
-      - name: Update versions
-        run: ./scripts/update-versions.sh ${{ steps.tag.outputs.tag }}
-      - name: Commit + retag
-        run: |
-          git config user.name "release-bot"
-          git config user.email "release-bot@users.noreply.github.com"
-          git add -A
-          git diff --cached --quiet || git commit -m "chore(release): update changelog and versions for ${{ steps.tag.outputs.tag }}"
-          git tag -f "${{ steps.tag.outputs.tag }}" HEAD
-          git push origin HEAD:main
-          git push origin "${{ steps.tag.outputs.tag }}" --force
+
       - uses: dtolnay/rust-toolchain@1.88.0
-      - run: cargo build --release
-      - run: cargo test
-      # Publishing MUST use crates.io trusted publishing (OIDC) per OSS_SPEC §10.3.
-      # Publishing is intentionally NOT yet wired up — the crate must first be
-      # registered on crates.io with trusted publishing configured.
-      # To enable: register the crate, configure OIDC trusted publishing on crates.io,
-      # then uncomment the steps below.
-      # - uses: rust-lang/crates-io-auth-action@v1
-      #   id: auth
-      # - run: cargo publish
-      #   env:
-      #     CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
-      - name: GitHub Release
-        uses: softprops/action-gh-release@v2
+
+      - name: Generate changelog
+        run: scripts/generate-changelog.sh "${GITHUB_REF_NAME#v}"
+
+      - name: Update versions
+        run: scripts/update-versions.sh "${GITHUB_REF_NAME#v}"
+
+      - name: Commit and push
+        id: push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(release): update changelog and versions for ${GITHUB_REF_NAME}"
+            git push origin main
+          fi
+          echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Update tag to new commit
+        run: |
+          git tag -f "${GITHUB_REF_NAME}" HEAD
+          git push origin "${GITHUB_REF_NAME}" --force
+
+      - name: Extract release notes
+        run: |
+          awk '/^## \[/{if(found) exit; found=1; next} found' CHANGELOG.md > release-notes.md
+          cat release-notes.md
+
+      - uses: actions/upload-artifact@v7
         with:
-          tag_name: ${{ steps.tag.outputs.tag }}
-          generate_release_notes: true
+          name: release-notes
+          path: release-notes.md
+          retention-days: 1
+
+  # Step 2 — build release artifacts in a matrix covering every target
+  # platform. Each job checks out the rewritten commit so it sees the
+  # bumped versions and generated changelog.
+  build:
+    name: Build ${{ matrix.target }}
+    needs: update-repo
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            use_cross: true
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+          - target: aarch64-pc-windows-msvc
+            os: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.update-repo.outputs.commit_sha }}
+
+      - uses: dtolnay/rust-toolchain@1.88.0
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Install cross
+        if: matrix.use_cross == true
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross
+
+      - name: Build
+        shell: bash
+        run: |
+          if [ "${{ matrix.use_cross }}" = "true" ]; then
+            cross build --release --target ${{ matrix.target }}
+          else
+            cargo build --release --target ${{ matrix.target }}
+          fi
+
+      - name: Package (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          TARGET="${{ matrix.target }}"
+          STEM="${BINARY_NAME}-v${VERSION}-${TARGET}"
+          mkdir -p dist staging
+          cp "target/${TARGET}/release/${BINARY_NAME}" staging/
+          cp README.md staging/ 2>/dev/null || true
+          cp LICENSE* staging/ 2>/dev/null || true
+          tar -czf "dist/${STEM}.tar.gz" -C staging .
+          (cd dist && sha256sum "${STEM}.tar.gz" > "${STEM}.tar.gz.sha256")
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $Version = "$env:GITHUB_REF_NAME".TrimStart('v')
+          $Target = "${{ matrix.target }}"
+          $Stem = "$env:BINARY_NAME-v${Version}-${Target}"
+          New-Item -ItemType Directory -Force dist, staging | Out-Null
+          Copy-Item "target/$Target/release/$env:BINARY_NAME.exe" staging/
+          if (Test-Path README.md) { Copy-Item README.md staging/ }
+          Get-ChildItem LICENSE* -ErrorAction SilentlyContinue | Copy-Item -Destination staging/
+          Compress-Archive -Path staging/* -DestinationPath "dist/${Stem}.zip"
+          $Hash = (Get-FileHash "dist/${Stem}.zip" -Algorithm SHA256).Hash.ToLower()
+          "${Hash}  ${Stem}.zip" | Out-File -Encoding ascii "dist/${Stem}.zip.sha256"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-${{ matrix.target }}
+          path: dist/
+          retention-days: 1
+
+  # Step 3 — publish artifacts and create the GitHub Release.
+  release:
+    name: GitHub Release
+    needs: [update-repo, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Prepare release body
+        run: |
+          if [ -f artifacts/release-notes.md ] && [ -s artifacts/release-notes.md ]; then
+            {
+              echo 'RELEASE_BODY<<RELEASE_EOF'
+              cat artifacts/release-notes.md
+              echo 'RELEASE_EOF'
+            } >> "$GITHUB_ENV"
+            rm -f artifacts/release-notes.md
+          else
+            echo 'RELEASE_BODY=' >> "$GITHUB_ENV"
+          fi
+
+      - uses: softprops/action-gh-release@v3
+        with:
+          body: ${{ env.RELEASE_BODY }}
+          generate_release_notes: ${{ env.RELEASE_BODY == '' }}
+          files: artifacts/*
+
+  # Step 4 — re-sync release notes on GitHub with CHANGELOG.md so
+  # previously-published releases pick up any edits made in the
+  # changelog during this release.
+  sync-release-notes:
+    name: Sync release notes
+    needs: [update-repo, release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.update-repo.outputs.commit_sha }}
+
+      - name: Sync release notes from CHANGELOG
+        run: scripts/sync-releases.sh "${GITHUB_REF_NAME#v}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  # Step 5 — publish to crates.io via trusted publishing (OIDC).
+  # Requires the `crates-registry` GitHub environment and that the
+  # crate has Trusted Publishing configured on crates.io. Until that
+  # is set up, this job will fail; delete it or disable the workflow
+  # until the registration is complete.
+  publish-crates:
+    name: Publish to crates.io
+    needs: [update-repo, build]
+    runs-on: ubuntu-latest
+    environment: crates-registry
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.update-repo.outputs.commit_sha }}
+
+      - uses: dtolnay/rust-toolchain@1.88.0
+
+      - name: Authenticate to crates.io (trusted publishing)
+        id: crates-auth
+        uses: rust-lang/crates-io-auth-action@v1
+
+      - name: Publish ztf
+        run: cargo publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.crates-auth.outputs.token }}
