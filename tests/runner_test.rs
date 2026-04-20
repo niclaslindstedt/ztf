@@ -2,7 +2,7 @@
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use tempfile::TempDir;
-use ztest::cli::PathSpec;
+use ztf::cli::PathSpec;
 
 fn write_scenario(dir: &Path, name: &str, body: &str) -> PathBuf {
     let path = dir.join(name);
@@ -35,18 +35,18 @@ async fn passing_scenario_reports_pass() {
 name = "writes a file"
 
   [scenario.arrange]
-  commands = ["echo 'alice' > $ZTEST_TMP/name.txt"]
+  commands = ["echo 'alice' > $ZTF_TMP/name.txt"]
 
   [scenario.act]
-  command = "cat $ZTEST_TMP/name.txt"
+  command = "cat $ZTF_TMP/name.txt"
 
   [scenario.assert]
   exit_code = 0
   stdout_contains = ["alice"]
-  file_exists = ["$ZTEST_TMP/name.txt"]
+  file_exists = ["$ZTF_TMP/name.txt"]
 "#,
     );
-    let report = ztest::run(&[spec(path)]).await.unwrap();
+    let report = ztf::run(&[spec(path)]).await.unwrap();
     assert_eq!(report.summary.total, 1);
     assert_eq!(report.summary.passed, 1);
     assert!(report.all_passed());
@@ -69,7 +69,7 @@ name = "wrong expectation"
   stdout_contains = ["hello"]
 "#,
     );
-    let report = ztest::run(&[spec(path)]).await.unwrap();
+    let report = ztf::run(&[spec(path)]).await.unwrap();
     assert_eq!(report.summary.failed, 1);
     assert!(!report.all_passed());
     let sr = &report.files[0].scenarios[0];
@@ -98,7 +98,7 @@ name = "bogus command"
   prompt = "should not be called"
 "#,
     );
-    let report = ztest::run(&[spec(path)]).await.unwrap();
+    let report = ztf::run(&[spec(path)]).await.unwrap();
     assert_eq!(report.summary.failed, 1);
     let sr = &report.files[0].scenarios[0];
     assert!(sr.agent.is_none(), "agent must not run when asserts fail");
@@ -131,7 +131,7 @@ name = "b"
   exit_code = 0
 "#,
     );
-    let report = ztest::run(&[spec(tmp.path().to_path_buf())]).await.unwrap();
+    let report = ztf::run(&[spec(tmp.path().to_path_buf())]).await.unwrap();
     assert_eq!(report.summary.total, 2);
     assert_eq!(report.summary.passed, 2);
 }
@@ -158,7 +158,7 @@ name = "second"
   exit_code = 0
 "#,
     );
-    let report = ztest::run(&[spec_with(path, "second")]).await.unwrap();
+    let report = ztf::run(&[spec_with(path, "second")]).await.unwrap();
     assert_eq!(report.summary.total, 1);
     assert_eq!(report.summary.passed, 1);
     assert_eq!(report.files[0].scenarios.len(), 1);
@@ -180,7 +180,7 @@ name = "only one"
   exit_code = 0
 "#,
     );
-    let report = ztest::run(&[spec_with(path, "nope")]).await.unwrap();
+    let report = ztf::run(&[spec_with(path, "nope")]).await.unwrap();
     assert!(!report.all_passed());
     let fr = &report.files[0];
     assert!(fr.scenarios.is_empty());
@@ -222,7 +222,7 @@ name = "second"
 "#,
     );
     let path = write_scenario(outer.path(), "st.toml", &toml);
-    let report = ztest::run(&[spec_with(path, "second")]).await.unwrap();
+    let report = ztf::run(&[spec_with(path, "second")]).await.unwrap();
     assert!(report.all_passed());
     assert!(marker.exists(), "setup did not run");
     assert!(teardown_marker.exists(), "teardown did not run");
@@ -243,7 +243,7 @@ name = "a"
   exit_code = 0
 "#,
     );
-    let result = ztest::run(&[spec_with(tmp.path().to_path_buf(), "a")]).await;
+    let result = ztf::run(&[spec_with(tmp.path().to_path_buf(), "a")]).await;
     assert!(result.is_err(), "filter + directory must error");
 }
 
@@ -266,7 +266,7 @@ name = "reads stdin"
   stdout_contains = ["got:alice"]
 "#,
     );
-    let report = ztest::run(&[spec(path)]).await.unwrap();
+    let report = ztf::run(&[spec(path)]).await.unwrap();
     assert!(report.all_passed(), "report: {report:?}");
 }
 
@@ -289,6 +289,6 @@ name = "only"
     );
     let input = format!("{}::only", path.display());
     let spec = PathSpec::from_str(&input).expect("parse");
-    let report = ztest::run(&[spec]).await.unwrap();
+    let report = ztf::run(&[spec]).await.unwrap();
     assert!(report.all_passed());
 }

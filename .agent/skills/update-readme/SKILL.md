@@ -5,7 +5,7 @@ description: "Use when README.md may be stale. Discovers commits since the last 
 
 # Updating the README
 
-`README.md` is the primary user-facing documentation for ztest. It covers installation, quick start, the feature list, and any user-visible defaults. It goes stale whenever a CLI flag, subcommand, default, or supported surface changes without a matching edit.
+`README.md` is the primary user-facing documentation for ztf. It covers installation, quick start, the feature list, and any user-visible defaults. It goes stale whenever a CLI flag, subcommand, default, or supported surface changes without a matching edit.
 
 ## Tracking mechanism
 

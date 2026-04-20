@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const out = {
-  name: "ztest",
+  name: "ztf",
   description: "A Rust CLI for agent-assisted end-to-end testing using TOML scenario files with arrange/act/assert stages and AI-powered final verification.",
   generatedAt: new Date().toISOString(),
 };

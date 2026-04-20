@@ -5,7 +5,7 @@ description: "Use when files under docs/ may be stale. Discovers commits since t
 
 # Updating the Docs
 
-The `docs/` directory contains conceptual documentation for ztest. Unlike the README (overview) or man pages (command reference), `docs/` explains *why* and *how* in depth. It goes stale whenever a user-visible behavior, configuration key, or supported surface changes without a matching edit.
+The `docs/` directory contains conceptual documentation for ztf. Unlike the README (overview) or man pages (command reference), `docs/` explains *why* and *how* in depth. It goes stale whenever a user-visible behavior, configuration key, or supported surface changes without a matching edit.
 
 ## Tracking mechanism
 

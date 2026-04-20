@@ -1,13 +1,13 @@
 use anyhow::Result;
 use clap::Parser;
-use ztest::cli::{Cli, Command, Format};
+use ztf::cli::{Cli, Command, Format};
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
         Command::Run { paths, format } => {
-            let report = ztest::run(&paths).await?;
+            let report = ztf::run(&paths).await?;
             match format {
                 Format::Human => print!("{}", report.render_human()),
                 Format::Json => println!("{}", report.render_json()),

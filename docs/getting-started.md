@@ -1,12 +1,12 @@
-# Getting started with ztest
+# Getting started with ztf
 
 > A Rust CLI for agent-assisted end-to-end testing using TOML scenario files with arrange/act/assert stages and AI-powered final verification.
 
 ## Install
 
 ```sh
-git clone https://github.com/niclaslindstedt/ztest
-cd ztest
+git clone https://github.com/niclaslindstedt/ztf
+cd ztf
 make install
 ```
 
@@ -63,16 +63,16 @@ chmod +x greet.sh
   prompt = "Does the program greet the user politely? Pass if yes."
 ```
 
-- Every command runs with cwd set to a fresh per-file temp directory, so plain relative paths Just Work. That directory is also exported as `$ZTEST_TMP` — useful as an anchor when a command `cd`'s away and later needs to come back. Relative `file_exists` / `file_contains` paths resolve against the same directory.
+- Every command runs with cwd set to a fresh per-file temp directory, so plain relative paths Just Work. That directory is also exported as `$ZTF_TMP` — useful as an anchor when a command `cd`'s away and later needs to come back. Relative `file_exists` / `file_contains` paths resolve against the same directory.
 - `act.stdin` (optional) is piped verbatim to the command — no shell expansion. Omit it and the child reads from `/dev/null`. Use it for commands that prompt for input.
 - Programmatic assertions are evaluated first; if any fail, the agent review is skipped.
-- The agent responds with a JSON verdict `{ "passed": bool, "reasoning": string }`. `ztest` fails the scenario if the agent returns `passed: false` or if the response cannot be parsed.
+- The agent responds with a JSON verdict `{ "passed": bool, "reasoning": string }`. `ztf` fails the scenario if the agent returns `passed: false` or if the response cannot be parsed.
 - `[setup]` and `[teardown]` run once per file, regardless of whether a `::scenario` filter narrowed the scenario list.
 
 ### JSON output for CI
 
 ```sh
-ztest run tests/ --format=json
+ztf run tests/ --format=json
 ```
 
 The envelope is:

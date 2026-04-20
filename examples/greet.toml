@@ -6,7 +6,7 @@
 #
 # Every command runs with cwd set to a fresh per-file temp directory, so
 # plain relative paths like ./greet.sh Just Work. The same directory is also
-# exported as $ZTEST_TMP — handy if your command cd's elsewhere and later
+# exported as $ZTF_TMP — handy if your command cd's elsewhere and later
 # needs to point back at it.
 #
 # The [scenario.agent_review] block needs a working zag provider

@@ -1,7 +1,7 @@
 //! Parsing rules for `PathSpec` (the `path[::scenario]` CLI argument).
 use std::path::PathBuf;
 use std::str::FromStr;
-use ztest::cli::PathSpec;
+use ztf::cli::PathSpec;
 
 #[test]
 fn parses_bare_path() {

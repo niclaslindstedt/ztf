@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use tempfile::TempDir;
-use ztest::assertions::{self, evaluate};
-use ztest::config::{Assert, FileContains};
-use ztest::shell::CmdOutput;
+use ztf::assertions::{self, evaluate};
+use ztf::config::{Assert, FileContains};
+use ztf::shell::CmdOutput;
 
 fn sample_output() -> CmdOutput {
     CmdOutput {
@@ -55,15 +55,15 @@ fn stdout_stderr_contains() {
 fn file_exists_and_file_contains_with_env_expansion() {
     let tmp = TempDir::new().unwrap();
     let mut env = HashMap::new();
-    env.insert("ZTEST_TMP".into(), tmp.path().display().to_string());
+    env.insert("ZTF_TMP".into(), tmp.path().display().to_string());
 
     let file = tmp.path().join("name.txt");
     std::fs::write(&file, "alice\n").unwrap();
 
     let a = Assert {
-        file_exists: vec!["$ZTEST_TMP/name.txt".into(), "${ZTEST_TMP}/missing".into()],
+        file_exists: vec!["$ZTF_TMP/name.txt".into(), "${ZTF_TMP}/missing".into()],
         file_contains: vec![FileContains {
-            path: "$ZTEST_TMP/name.txt".into(),
+            path: "$ZTF_TMP/name.txt".into(),
             contains: "alice".into(),
         }],
         ..Default::default()

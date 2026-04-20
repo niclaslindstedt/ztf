@@ -1,4 +1,4 @@
-# Architecture of ztest
+# Architecture of ztf
 
 A short, narrative tour of the codebase. Cover:
 
