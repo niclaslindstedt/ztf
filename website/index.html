@@ -4,6 +4,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+    <!-- Favicon: amber `$` prompt mark — matches the brand. -->
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.86em' font-size='90' fill='%23f7b500' font-family='ui-monospace,monospace' font-weight='700'>$</text></svg>"
+    />
+
+    <!-- Default <head> — overridden per-route by scripts/render-route-heads.mjs at build time. -->
     <title>ztf — agent-assisted end-to-end testing</title>
     <meta
       name="description"
@@ -12,8 +20,6 @@
 
     <link rel="canonical" href="https://ztf.niclaslindstedt.se/" />
     <meta name="robots" content="index,follow,max-image-preview:large" />
-
-    <!-- robots.txt and sitemap.xml advertised here for crawlers -->
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
 
     <!-- Open Graph -->
@@ -40,7 +46,7 @@
     />
     <meta name="twitter:image" content="https://ztf.niclaslindstedt.se/og-default.png" />
 
-    <!-- Structured data: schema.org SoftwareApplication -->
+    <!-- Structured data -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -58,347 +64,9 @@
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
       }
     </script>
-
-    <script type="module" src="/src/main.js"></script>
   </head>
   <body>
-    <header class="site">
-      <div class="container row">
-        <a href="/" class="brand">ztf</a>
-        <nav>
-          <a href="#example">Example</a>
-          <a href="#install">Install</a>
-          <a href="#docs">Docs</a>
-          <a
-            href="https://github.com/niclaslindstedt/ztf"
-            rel="noopener"
-            target="_blank"
-            >GitHub</a
-          >
-        </nav>
-      </div>
-    </header>
-
-    <main>
-      <section class="hero" id="top">
-        <div class="container">
-          <h1>ztf</h1>
-          <p class="tagline">
-            Agent-assisted end-to-end testing for CLIs. Author scenarios in
-            TOML, run them with one binary, get a single CI exit code — with
-            an optional AI verdict for criteria too nuanced for a regex.
-          </p>
-          <div class="ctas">
-            <a class="btn primary" href="#install">Install</a>
-            <a class="btn" href="#example">See an example</a>
-            <a
-              class="btn"
-              href="https://github.com/niclaslindstedt/ztf"
-              rel="noopener"
-              target="_blank"
-              >GitHub</a
-            >
-          </div>
-          <span class="install-line" id="hero-install">
-            <span data-copy-target>cargo install ztf</span>
-            <button data-copy="#hero-install [data-copy-target]" type="button">
-              copy
-            </button>
-          </span>
-        </div>
-      </section>
-
-      <section id="why">
-        <div class="container">
-          <h2>Why ztf</h2>
-          <p class="lede">
-            End-to-end tests where the success criterion is too nuanced for a
-            regex — but you still want a single exit code for CI.
-          </p>
-          <div class="features">
-            <div class="feature">
-              <h3><span class="dot"></span> TOML-native scenarios</h3>
-              <p>
-                Define <code>arrange</code> / <code>act</code> /
-                <code>assert</code> stages without writing test code. Each
-                scenario is a self-contained, diff-friendly file.
-              </p>
-            </div>
-            <div class="feature">
-              <h3><span class="dot"></span> Agent-in-the-loop verdicts</h3>
-              <p>
-                Delegate fuzzy checks ("does this output read like a polite
-                greeting?") to a zag-driven AI reviewer that returns a
-                structured JSON verdict.
-              </p>
-            </div>
-            <div class="feature">
-              <h3><span class="dot"></span> Structured machine output</h3>
-              <p>
-                <code>--format=json</code> emits a stable envelope with file,
-                scenario, assertion, and agent results — pipe it into
-                <code>jq</code> or your CI.
-              </p>
-            </div>
-            <div class="feature">
-              <h3><span class="dot"></span> Per-file temp dirs</h3>
-              <p>
-                Every command runs in a fresh temp directory exposed as
-                <code>$ZTF_TMP</code>. Relative paths Just Work; cleanup is
-                automatic.
-              </p>
-            </div>
-            <div class="feature">
-              <h3><span class="dot"></span> Programmatic gates first</h3>
-              <p>
-                The agent only runs when stdout, stderr, exit code, and file
-                checks all pass — saving tokens and keeping flakiness out of
-                the agent path.
-              </p>
-            </div>
-            <div class="feature">
-              <h3><span class="dot"></span> One CI exit code</h3>
-              <p>
-                <code>0</code> if every scenario passed, <code>1</code>
-                otherwise. Drops into any CI pipeline without bespoke
-                scripting.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="example">
-        <div class="container">
-          <h2>A scenario, end-to-end</h2>
-          <p class="lede">
-            The full <code>examples/greet</code> demo: arrange a tiny shell
-            script, run it, assert against stdout and the filesystem, and let
-            the agent decide whether the greeting reads naturally.
-          </p>
-          <div class="split">
-            <div class="code-card">
-              <div class="filename">
-                <span>
-                  <span class="dots"
-                    ><span></span><span></span><span></span
-                  ></span>
-                  examples/greet/ztf.toml
-                </span>
-                <button
-                  data-copy="#example-toml"
-                  type="button"
-                  style="
-                    background: transparent;
-                    color: var(--fg-muted);
-                    border: 1px solid var(--border-strong);
-                    border-radius: 6px;
-                    padding: 2px 8px;
-                    font: inherit;
-                    font-size: 0.8rem;
-                    cursor: pointer;
-                  "
-                >
-                  copy
-                </button>
-              </div>
-              <pre><code id="example-toml"></code></pre>
-            </div>
-            <div class="output-card" aria-label="ztf run output">
-<span class="out-dim">$</span> <span class="out-accent">ztf run examples/greet/ztf.toml</span>
-
-<span class="out-dim">examples/greet/ztf.toml</span>
-  <span class="out-pass">✓</span> greets a user by name
-      <span class="out-dim">assert exit_code       =</span> <span class="out-pass">pass</span>
-      <span class="out-dim">assert stdout_contains =</span> <span class="out-pass">pass</span>
-      <span class="out-dim">assert file_exists     =</span> <span class="out-pass">pass</span>
-      <span class="out-dim">agent  verdict         =</span> <span class="out-pass">pass</span>
-        <span class="out-dim">"Greets the user by name in a natural, polite way."</span>
-
-<span class="out-dim">───────────────────────────────────────</span>
-<span class="out-pass">summary</span>  total: 1   passed: 1   failed: 0
-<span class="out-dim">exit</span>     <span class="out-pass">0</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="platforms">
-        <div class="container">
-          <h2>Runs anywhere Rust runs</h2>
-          <p class="lede">
-            ztf is a single static binary with no runtime dependencies beyond
-            an optional zag-supported provider on <code>PATH</code> for
-            <code>agent_review</code> blocks.
-          </p>
-          <div class="platforms">
-            <span class="pill"><span class="dot"></span> Linux (x86_64, aarch64)</span>
-            <span class="pill"><span class="dot"></span> macOS (Intel, Apple Silicon)</span>
-            <span class="pill"><span class="dot"></span> Windows (x86_64)</span>
-            <span class="pill"><span class="dot"></span> Rust 1.88+ (edition 2024)</span>
-          </div>
-        </div>
-      </section>
-
-      <section id="install">
-        <div class="container">
-          <h2>Install</h2>
-          <p class="lede">
-            Pick whichever route fits your setup. ztf ships as a single
-            binary; the <code>zag-agent</code> dependency is pulled in at
-            build time.
-          </p>
-          <div class="install-grid">
-            <div class="code-card">
-              <div class="filename">
-                <span>
-                  <span class="dots"
-                    ><span></span><span></span><span></span
-                  ></span>
-                  via cargo
-                </span>
-                <button
-                  data-copy="#install-cargo"
-                  type="button"
-                  style="
-                    background: transparent;
-                    color: var(--fg-muted);
-                    border: 1px solid var(--border-strong);
-                    border-radius: 6px;
-                    padding: 2px 8px;
-                    font: inherit;
-                    font-size: 0.8rem;
-                    cursor: pointer;
-                  "
-                >
-                  copy
-                </button>
-              </div>
-              <pre><code id="install-cargo">cargo install ztf</code></pre>
-            </div>
-            <div class="code-card">
-              <div class="filename">
-                <span>
-                  <span class="dots"
-                    ><span></span><span></span><span></span
-                  ></span>
-                  from source
-                </span>
-                <button
-                  data-copy="#install-source"
-                  type="button"
-                  style="
-                    background: transparent;
-                    color: var(--fg-muted);
-                    border: 1px solid var(--border-strong);
-                    border-radius: 6px;
-                    padding: 2px 8px;
-                    font: inherit;
-                    font-size: 0.8rem;
-                    cursor: pointer;
-                  "
-                >
-                  copy
-                </button>
-              </div>
-              <pre><code id="install-source">git clone https://github.com/niclaslindstedt/ztf
-cd ztf
-make install</code></pre>
-            </div>
-          </div>
-          <p
-            style="
-              margin-top: 20px;
-              color: var(--fg-muted);
-              font-size: 0.95rem;
-            "
-          >
-            Need to run without an LLM provider? Set
-            <code>ZTF_SKIP_AGENT_REVIEW=1</code> to bypass
-            <code>agent_review</code> blocks; programmatic assertions still
-            run.
-          </p>
-        </div>
-      </section>
-
-      <section id="docs">
-        <div class="container">
-          <h2>Documentation</h2>
-          <p class="lede">
-            Deep references for getting started, configuration,
-            architecture, and troubleshooting.
-          </p>
-          <div class="docs">
-            <a
-              class="doc-card"
-              href="https://github.com/niclaslindstedt/ztf/blob/main/docs/getting-started.md"
-              rel="noopener"
-              target="_blank"
-            >
-              <h3>Getting started →</h3>
-              <p>Install, write your first scenario, and run it locally.</p>
-            </a>
-            <a
-              class="doc-card"
-              href="https://github.com/niclaslindstedt/ztf/blob/main/docs/configuration.md"
-              rel="noopener"
-              target="_blank"
-            >
-              <h3>Configuration →</h3>
-              <p>Every block, key, and assertion the TOML schema supports.</p>
-            </a>
-            <a
-              class="doc-card"
-              href="https://github.com/niclaslindstedt/ztf/blob/main/docs/architecture.md"
-              rel="noopener"
-              target="_blank"
-            >
-              <h3>Architecture →</h3>
-              <p>How the runner, assertions, and agent reviewer compose.</p>
-            </a>
-            <a
-              class="doc-card"
-              href="https://github.com/niclaslindstedt/ztf/blob/main/docs/troubleshooting.md"
-              rel="noopener"
-              target="_blank"
-            >
-              <h3>Troubleshooting →</h3>
-              <p>Common failure modes — provider missing, parse errors, and more.</p>
-            </a>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="site">
-      <div class="container row">
-        <div>
-          ztf <span data-version></span> · MIT License · last updated
-          <span data-last-updated></span>
-        </div>
-        <div>
-          <a
-            href="https://github.com/niclaslindstedt/ztf"
-            rel="noopener"
-            target="_blank"
-            >GitHub</a
-          >
-          ·
-          <a
-            href="https://github.com/niclaslindstedt/ztf/blob/main/CHANGELOG.md"
-            rel="noopener"
-            target="_blank"
-            >Changelog</a
-          >
-          ·
-          <a
-            href="https://github.com/niclaslindstedt/ztf/blob/main/LICENSE"
-            rel="noopener"
-            target="_blank"
-            >License</a
-          >
-        </div>
-      </div>
-    </footer>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
