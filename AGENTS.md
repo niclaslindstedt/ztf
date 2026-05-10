@@ -53,15 +53,17 @@ but still want a single exit code for CI.
 
 | Module | Role |
 |---|---|
-| `main.rs` | Tokio runtime entry; parses `Cli` via clap; dispatches to `lib::run`; sets exit code from `Report::all_passed`. |
+| `main.rs` | Tokio runtime entry; parses `Cli` via clap; calls `output::init`; dispatches `--help-agent` / `--debug-agent`, the discoverability subcommands, and the `Run` flow; sets exit code from `Report::all_passed`. |
 | `lib.rs`  | Public surface: re-exports `run`, `Report`, and module tree. |
-| `cli.rs`  | Clap `Cli` / `Command::Run { paths, format }`, `Format` enum. |
+| `cli.rs`  | Clap `Cli` (with `--debug`, `--help-agent`, `--debug-agent`) and the four `Command` variants (`Run`, `Commands`, `Man`, `Docs`). |
 | `config.rs` | Serde deserialisation of the TOML schema: `TestFile`, `Setup`, `Teardown`, `Scenario`, `Arrange`, `Act`, `Assert`, `FileContains`, `AgentReview`. `parse(&str)` and `load(&Path)`. |
 | `shell.rs` | `run_command(cmd, cwd, env) -> CmdOutput { stdout, stderr, exit_code }` — every command runs via `sh -c` with cwd set to the per-file temp dir. |
 | `assertions.rs` | `evaluate(&Assert, &CmdOutput, cwd, env) -> Vec<AssertionResult>`; handles `$VAR` / `${VAR}` expansion and resolves relative paths against cwd. |
-| `agent.rs` | `verify(&AgentReview, VerifyContext)` — builds a prompt including scenario name, command, exit code, truncated stdout/stderr; calls `zag_agent::builder::AgentBuilder` with a fixed JSON schema `{passed: bool, reasoning: string}`; returns `AgentVerdict`. Failures (transport, schema, parse) become `passed: false` with reasoning carrying the error. |
-| `runner.rs` | Orchestrator: `discover(paths)` → for each file create a fresh `TempDir`, inject `ZTF_TMP`, run setup → scenarios → teardown, build `Report`. Agent is called only when **all** programmatic assertions pass. |
+| `agent.rs` | `verify(&AgentReview, VerifyContext)` — loads the prompt template from `prompts/agent-review/1_0_0.md`, fills in scenario name, command, exit code, truncated stdout/stderr; calls `zag_agent::builder::AgentBuilder` with a fixed JSON schema `{passed: bool, reasoning: string}`; returns `AgentVerdict`. Failures (transport, schema, parse) become `passed: false` with reasoning carrying the error. The `ZTF_SKIP_AGENT_REVIEW` env var bypasses the call entirely (handled in `runner.rs`). |
+| `runner.rs` | Orchestrator: `discover(paths)` → for each file create a fresh `TempDir`, inject `ZTF_TMP`, run setup → scenarios → teardown, build `Report`. Agent is called only when **all** programmatic assertions pass and `ZTF_SKIP_AGENT_REVIEW` is unset. |
 | `report.rs` | `Report`, `FileReport`, `ScenarioResult`, `Summary`; human (`render_human`) and JSON (`render_json`) renderers; `all_passed()` drives the CLI exit code. |
+| `output.rs` | Central output module (§19.4) — `status` / `warn` / `info` / `header` / `error` / `debug` helpers. Writes to stderr with ANSI styling (NO_COLOR-aware) and to a persistent log at `~/.local/state/ztf/debug.log` (override via `ZTF_LOG_FILE`). `--debug` lifts `debug` messages onto stderr. |
+| `discoverability.rs` | §12.5 surfaces — `--help-agent`, `--debug-agent`, `commands [<name>] [--examples]`, `man <name>`, `docs <topic>`. Manpages and topic docs are embedded via `include_str!`. |
 
 **Dependency direction** — modules layer cleanly, no cycles:
 
@@ -137,7 +139,7 @@ Exit code: `0` if `summary.failed == 0` and no file had a `setup_error` or
 | Tests       | `tests/...` |
 | Docs update | `docs/...` |
 | Examples    | `examples/...` |
-| LLM prompt  | `prompts/<name>/<major>_<minor>.md` (see `prompts/README.md`) |
+| LLM prompt  | `prompts/<name>/<major>_<minor>_<patch>.md` (see `prompts/README.md`) |
 
 ## Test conventions
 

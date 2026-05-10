@@ -158,17 +158,21 @@ async fn run_scenario(
 
     let agent_verdict = if asserts_passed {
         if let Some(review) = &scenario.agent_review {
-            Some(
-                agent::verify(
-                    review,
-                    VerifyContext {
-                        scenario_name: &scenario.name,
-                        act_command: &scenario.act.command,
-                        act_output: &act_output,
-                    },
+            if std::env::var_os("ZTF_SKIP_AGENT_REVIEW").is_some() {
+                None
+            } else {
+                Some(
+                    agent::verify(
+                        review,
+                        VerifyContext {
+                            scenario_name: &scenario.name,
+                            act_command: &scenario.act.command,
+                            act_output: &act_output,
+                        },
+                    )
+                    .await,
                 )
-                .await,
-            )
+            }
         } else {
             None
         }

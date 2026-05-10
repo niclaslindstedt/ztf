@@ -4,6 +4,7 @@ pub mod agent;
 pub mod assertions;
 pub mod cli;
 pub mod config;
+pub mod discoverability;
 pub mod output;
 pub mod report;
 pub mod runner;

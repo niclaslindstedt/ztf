@@ -1,8 +1,8 @@
 # Demo scenario — run from the repo root:
-#   cargo run -- run examples/greet.toml
+#   cargo run -- run examples/greet/ztf.toml
 #
 # Or run only this single scenario by name:
-#   cargo run -- run 'examples/greet.toml::greets a user by name'
+#   cargo run -- run 'examples/greet/ztf.toml::greets a user by name'
 #
 # Every command runs with cwd set to a fresh per-file temp directory, so
 # plain relative paths like ./greet.sh Just Work. The same directory is also
@@ -10,7 +10,8 @@
 # needs to point back at it.
 #
 # The [scenario.agent_review] block needs a working zag provider
-# (e.g. the `claude` CLI on PATH). Remove that block for a fully offline run.
+# (e.g. the `claude` CLI on PATH). For an offline / CI run, set
+# ZTF_SKIP_AGENT_REVIEW=1 in the environment to skip the AI verdict.
 
 [[scenario]]
 name = "greets a user by name"

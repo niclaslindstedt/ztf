@@ -17,17 +17,17 @@ For the `agent_review` step to succeed at runtime you need a zag-supported provi
 The repo ships with a working demo in `examples/`:
 
 ```sh
-cargo run -- run examples/greet.toml
+cargo run -- run examples/greet/ztf.toml
 ```
 
-That TOML defines a single scenario that writes a tiny `greet.sh` to the temp directory, runs it with `alice\n` piped on stdin, asserts the exit code and stdout, and then asks the agent whether the greeting looks natural. Remove the `[scenario.agent_review]` block to run offline.
+That TOML defines a single scenario that writes a tiny `greet.sh` to the temp directory, runs it with `alice\n` piped on stdin, asserts the exit code and stdout, and then asks the agent whether the greeting looks natural. Set `ZTF_SKIP_AGENT_REVIEW=1` in the environment to skip the AI verdict for an offline / CI run, or remove the `[scenario.agent_review]` block entirely.
 
 ### Running a single scenario
 
 A file can hold many scenarios. Append `::<name>` to the file path to run just one:
 
 ```sh
-cargo run -- run 'examples/greet.toml::greets a user by name'
+cargo run -- run 'examples/greet/ztf.toml::greets a user by name'
 ```
 
 The filter splits on the first `::`, so scenario names may contain `::`. It is only valid on a single `.toml` file — not on a directory.
