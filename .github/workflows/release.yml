@@ -1,10 +1,16 @@
 name: release
 
 # Triggered by the `v*` tag push that version-bump performs. The tag
-# push must be authenticated with RELEASE_TOKEN (a PAT or GitHub App
-# token) — the default GITHUB_TOKEN deliberately suppresses downstream
-# workflow triggers, so a tag pushed with it would not fire this
-# workflow. See OSS_SPEC §10.3.
+# push from version-bump must be authenticated with RELEASE_TOKEN (a
+# PAT or GitHub App token) so this workflow fires; the default
+# GITHUB_TOKEN deliberately suppresses downstream workflow triggers
+# and a tag pushed with it would not fire this workflow.
+#
+# This workflow itself uses the default GITHUB_TOKEN for its
+# commit-to-main and retag steps. That same trigger suppression is
+# what prevents the retag from re-firing this workflow on itself
+# (which would attempt to re-publish an already-published version
+# and fail noisily). See OSS_SPEC §10.3.
 on:
   push:
     tags:
@@ -29,11 +35,12 @@ jobs:
     outputs:
       commit_sha: ${{ steps.push.outputs.commit_sha }}
     steps:
+      # Uses the default GITHUB_TOKEN so the retag below does not
+      # re-fire this workflow (see OSS_SPEC §10.3).
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           ref: main
-          token: ${{ secrets.RELEASE_TOKEN }}
 
       - uses: dtolnay/rust-toolchain@1.88.0
 
