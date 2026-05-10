@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://ztf.niclaslindstedt.se/sitemap.xml
