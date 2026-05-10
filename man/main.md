@@ -5,7 +5,16 @@
 ## Synopsis
 
 ```
+ztf [--debug] [--help-agent | --debug-agent] <SUBCOMMAND> [args]
+```
+
+The four subcommands are:
+
+```
 ztf run <PATH[::SCENARIO]>... [--format human|json]
+ztf commands [<NAME>] [--examples]
+ztf man <NAME>
+ztf docs <TOPIC>
 ```
 
 ## Description
@@ -23,8 +32,11 @@ A TOML file may also declare top-level `[setup]` and `[teardown]` blocks that ru
 
 | Command | Description |
 |---|---|
-| `run <PATH[::SCENARIO]>...` | Run scenarios from the given files or directories (recursed for `*.toml`). Append `::<scenario>` to a file path to run only the named scenario. |
-| `help`                      | Show help text. |
+| `run <PATH[::SCENARIO]>...`         | Run scenarios from the given files or directories (recursed for `*.toml`). Append `::<scenario>` to a file path to run only the named scenario. |
+| `commands [<NAME>] [--examples]`    | Print a machine-readable index of every command. See [`commands.md`](commands.md). |
+| `man <NAME>`                        | Print the embedded reference manpage for `<NAME>`. See [`man.md`](man.md). |
+| `docs <TOPIC>`                      | Print the embedded conceptual documentation topic. See [`docs.md`](docs.md). |
+| `help`                              | Show help text. |
 
 ## Scenario selection
 
@@ -46,9 +58,12 @@ and the exit code is `1`.
 
 | Flag | Type | Default | Description |
 |---|---|---|---|
-| `--format` | `human` \| `json` | `human` | Output format. |
-| `--version` | bool | false | Print version and exit. |
-| `--help`    | bool | false | Print help and exit. |
+| `--format`       | `human` \| `json` | `human` | Output format on `run`. |
+| `--debug`        | bool | false | Lift debug-level output onto stderr (global). |
+| `--help-agent`   | bool | false | Print the agent-facing self-describing prompt block (§12.5). |
+| `--debug-agent`  | bool | false | Print agent-facing troubleshooting context (§12.5). |
+| `--version`      | bool | false | Print version and exit. |
+| `--help`         | bool | false | Print help and exit. |
 
 ## Scenario fields
 

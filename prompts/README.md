@@ -11,18 +11,27 @@ file rather than as an inline string in source code.
 ```
 prompts/
 └── <prompt-name>/
-    ├── 1_0.md
-    ├── 1_1.md   # in-place edit, bumps minor
-    └── 2_0.md   # breaking rewrite, bumps major
+    ├── 1_0_0.md
+    ├── 1_1_0.md   # in-place edit, bumps minor
+    └── 2_0_0.md   # breaking rewrite, bumps major
 ```
 
 ## File format
 
-Each `<major>_<minor>.md` file is plain Markdown with two required
-section headings:
+Each `<major>_<minor>_<patch>.md` file starts with YAML front matter
+declaring `name`, `description`, and a `version` whose value matches
+the filename stem (`1_2_0.md` → `version: 1.2.0`). After the front
+matter come a human-readable `# <prompt-name> — v<version>` heading
+and the two required sections `## System` and `## User`:
 
 ```markdown
-# <prompt-name> — v<major>.<minor>
+---
+name: <prompt-name>
+description: One-sentence purpose of this prompt.
+version: 1.0.0
+---
+
+# <prompt-name> — v1.0.0
 
 ## System
 
@@ -30,20 +39,29 @@ section headings:
 
 ## User
 
-…user message body. May contain {{ jinja }} placeholders that the
-loader renders with runtime values…
+…user message body. May contain `{placeholder}` markers that the
+loader substitutes with runtime values…
 ```
 
-Anything outside the `## System` and `## User` sections is ignored by
-the loader and is purely for humans reading the file.
+Anything outside the front matter and the `## System` / `## User`
+sections is ignored by the loader and is purely for humans reading
+the file.
 
 ## Versioning rule
 
-- **Minor bump** (`1_0` → `1_1`): in-place edit. Old version stays on
-  disk so behavior changes can be diffed and bisected.
-- **Major bump** (`1_x` → `2_0`): breaking rewrite that callers must be
-  updated for.
+- **Patch bump** (`1_0_0` → `1_0_1`): typo / wording fix that does not
+  change the model's expected behavior.
+- **Minor bump** (`1_0_0` → `1_1_0`): meaningful behavior change that
+  is still backward-compatible with the loader's placeholder set.
+- **Major bump** (`1_x_y` → `2_0_0`): breaking rewrite — the
+  placeholder set, schema, or expected output format has changed and
+  callers must be updated.
+- Existing versioned files are **never edited**. Every change ships
+  as a new file at a bumped semver.
 - Loaders pick the highest version unless explicitly pinned.
 
-If this project performs no LLM calls, leave this directory empty
-(this README is enough to satisfy `oss-spec validate`).
+## Prompts in this project
+
+| Prompt | Used by |
+|---|---|
+| [`agent-review`](agent-review/1_0_0.md) | `src/agent.rs` — final verdict for `[scenario.agent_review]`. |

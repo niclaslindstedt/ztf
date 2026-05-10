@@ -1,0 +1,66 @@
+# Pre-commit hooks for the ztf repo (§16 of OSS_SPEC.md).
+#
+# Install with:   pre-commit install --install-hooks
+#                 pre-commit install --hook-type commit-msg
+#
+# pre-commit itself: https://pre-commit.com/
+#
+# These hooks enforce the same gates CI does, locally, before a commit
+# can land — `make fmt-check`, `make lint`, `make shellcheck`,
+# `make actionlint`, conventional-commit message linting,
+# trailing-whitespace fixing, and a guard that forbids hand-editing
+# `CHANGELOG.md` outside release commits.
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.6.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: []
+
+  - repo: local
+    hooks:
+      - id: fmt-check
+        name: cargo fmt --check
+        entry: make fmt-check
+        language: system
+        pass_filenames: false
+        types_or: [rust]
+
+      - id: clippy
+        name: cargo clippy -- -D warnings
+        entry: make lint
+        language: system
+        pass_filenames: false
+        types_or: [rust]
+
+      - id: shellcheck
+        name: shellcheck
+        entry: make shellcheck
+        language: system
+        pass_filenames: false
+        files: ^scripts/.*\.sh$
+
+      - id: actionlint
+        name: actionlint
+        entry: make actionlint
+        language: system
+        pass_filenames: false
+        files: ^\.github/workflows/.*\.ya?ml$
+
+      - id: changelog-guard
+        name: forbid hand-edits to CHANGELOG.md
+        entry: scripts/changelog-guard.sh
+        language: system
+        files: ^CHANGELOG\.md$
+        pass_filenames: false

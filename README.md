@@ -6,7 +6,16 @@ A Rust CLI for agent-assisted end-to-end testing using TOML scenario files with 
 [![crates.io](https://img.shields.io/crates/v/ztf.svg)](https://crates.io/crates/ztf)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## Why?
+## What
+
+`ztf` runs end-to-end tests authored as TOML scenarios. Each scenario has an
+`arrange` block (setup commands), an `act` block (the single command under
+test), an `assert` block (programmatic checks against stdout/stderr/exit
+code/files), and an optional `agent_review` block in which an AI agent
+delivers the final verdict for criteria too nuanced for a regex. The runner
+returns a single exit code suitable for CI plus a structured JSON report.
+
+## Why
 
 - TOML-native scenario authorship — define setup, commands, scripts, and assertions without writing code
 - Agent-in-the-loop verdicts — delegate nuanced, context-sensitive checks to an AI reviewer instead of brittle regex assertions
@@ -87,7 +96,18 @@ calls only happen on otherwise-passing scenarios.
 
 ## Examples
 
-See [`examples/`](examples/) for runnable demos.
+See [`examples/`](examples/) for runnable demos. Each example lives in its
+own subdirectory with a `README.md` and a `ztf.toml` scenario file:
+
+- [`examples/greet/`](examples/greet/) — minimal `arrange` / `act` /
+  `assert` / `agent_review` walkthrough.
+
+Run any example without an LLM provider by setting
+`ZTF_SKIP_AGENT_REVIEW=1`:
+
+```sh
+ZTF_SKIP_AGENT_REVIEW=1 ztf run examples/greet/ztf.toml
+```
 
 ## Troubleshooting
 
@@ -109,6 +129,13 @@ scenarios in that file are blocked until setup succeeds.
 - [Configuration](docs/configuration.md)
 - [Architecture](docs/architecture.md)
 - [Troubleshooting](docs/troubleshooting.md)
+
+## Community
+
+- **Bug reports** — open an [issue](https://github.com/niclaslindstedt/ztf/issues/new?template=bug_report.md) with a minimal reproduction.
+- **Feature requests** — open an [issue](https://github.com/niclaslindstedt/ztf/issues/new?template=feature_request.md) describing the use case.
+- **Questions and discussion** — use [GitHub Discussions](https://github.com/niclaslindstedt/ztf/discussions); please don't open issues for general questions.
+- **Security reports** — see [SECURITY.md](SECURITY.md). Never disclose security issues in public issues.
 
 ## Contributing
 

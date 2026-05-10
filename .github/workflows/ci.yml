@@ -87,3 +87,37 @@ jobs:
         run: make actionlint
       - name: make shellcheck
         run: make shellcheck
+
+  # Exercise every example scenario so the demos in `examples/`
+  # cannot silently rot (§13). Each example must run cleanly with
+  # ZTF_SKIP_AGENT_REVIEW=1 (no AI provider is available in CI).
+  examples:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@1.88.0
+      - uses: Swatinem/rust-cache@v2
+      - name: Build ztf
+        run: cargo build
+      - name: Run examples (agent review skipped)
+        env:
+          ZTF_SKIP_AGENT_REVIEW: "1"
+        run: |
+          cargo run -- run examples/greet/ztf.toml --format=json | tee /tmp/run.json
+          jq -e '.summary.failed == 0' /tmp/run.json
+
+  # Composition-analysis (§14): fail CI on any high-severity advisory
+  # affecting our crate dependency tree. cargo-audit reads
+  # Cargo.lock and queries the RustSec advisory DB.
+  audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@1.88.0
+      - uses: rustsec/audit-check@v2.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}

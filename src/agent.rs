@@ -75,25 +75,61 @@ fn parse_verdict(text: &str) -> AgentVerdict {
     }
 }
 
+/// Versioned prompt template. Per §13.5 of `OSS_SPEC.md`, the prompt
+/// lives in a file under `prompts/<name>/<major>_<minor>_<patch>.md`
+/// rather than as an inline string here. We embed it at compile time
+/// so the binary stays self-contained.
+const PROMPT_TEMPLATE: &str = include_str!("../prompts/agent-review/1_0_0.md");
+
 fn build_prompt(review: &AgentReview, ctx: &VerifyContext<'_>) -> String {
     let stdout = truncate(&ctx.act_output.stdout, STDOUT_STDERR_TRUNC);
     let stderr = truncate(&ctx.act_output.stderr, STDOUT_STDERR_TRUNC);
-    format!(
-        "You are reviewing the result of an end-to-end test scenario.\n\
-         Respond ONLY with JSON matching the schema: {{\"passed\": bool, \"reasoning\": string}}.\n\
-         \n\
-         Scenario: {name}\n\
-         Command:  {cmd}\n\
-         ExitCode: {code}\n\
-         \n\
-         --- stdout ---\n{stdout}\n\
-         --- stderr ---\n{stderr}\n\
-         --- reviewer instructions ---\n{instr}\n",
-        name = ctx.scenario_name,
-        cmd = ctx.act_command,
-        code = ctx.act_output.exit_code,
-        instr = review.prompt,
-    )
+    let exit_code = ctx.act_output.exit_code.to_string();
+    render_prompt(PROMPT_TEMPLATE)
+        .replace("{scenario_name}", ctx.scenario_name)
+        .replace("{act_command}", ctx.act_command)
+        .replace("{exit_code}", &exit_code)
+        .replace("{stdout}", &stdout)
+        .replace("{stderr}", &stderr)
+        .replace("{reviewer_instructions}", &review.prompt)
+}
+
+/// Strip the YAML front matter and the human-only `# heading`, then
+/// concatenate the `## System` and `## User` section bodies into the
+/// single prompt string we hand to the agent runtime.
+fn render_prompt(template: &str) -> String {
+    let body = strip_front_matter(template);
+    let (system, user) = split_sections(body);
+    format!("{system}\n\n{user}")
+}
+
+fn strip_front_matter(s: &str) -> &str {
+    if let Some(rest) = s.strip_prefix("---\n")
+        && let Some(end) = rest.find("\n---\n")
+    {
+        return &rest[end + "\n---\n".len()..];
+    }
+    s
+}
+
+fn split_sections(body: &str) -> (String, String) {
+    let mut system = String::new();
+    let mut user = String::new();
+    let mut current: Option<&mut String> = None;
+    for line in body.lines() {
+        match line.trim_end() {
+            "## System" => current = Some(&mut system),
+            "## User" => current = Some(&mut user),
+            l if l.starts_with("# ") => current = None,
+            l => {
+                if let Some(buf) = current.as_deref_mut() {
+                    buf.push_str(l);
+                    buf.push('\n');
+                }
+            }
+        }
+    }
+    (system.trim().to_string(), user.trim().to_string())
 }
 
 fn truncate(s: &str, max: usize) -> String {

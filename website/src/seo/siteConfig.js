@@ -8,7 +8,7 @@ export const siteConfig = {
   tagline: "Agent-assisted end-to-end testing for Rust CLIs",
   description:
     "ztf is a Rust CLI that runs agent-assisted end-to-end tests defined in TOML scenario files, with arrange/act/assert stages and an AI-powered final verdict.",
-  siteUrl: "https://niclaslindstedt.github.io/ztf/",
+  siteUrl: "https://ztf.niclaslindstedt.se/",
   locale: "en_US",
   language: "en",
   ogImage: {
