@@ -6,7 +6,11 @@ rust-version = "1.88"
 license = "MIT"
 description = "A Rust CLI for agent-assisted end-to-end testing using TOML scenario files with arrange/act/assert stages and AI-powered final verification."
 repository = "https://github.com/niclaslindstedt/ztf"
+homepage = "https://ztf.niclaslindstedt.se"
+documentation = "https://ztf.niclaslindstedt.se/docs"
 readme = "README.md"
+keywords = ["testing", "e2e", "cli", "agent", "toml"]
+categories = ["command-line-utilities", "development-tools::testing"]
 
 [[bin]]
 name = "ztf"

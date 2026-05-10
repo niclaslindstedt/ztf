@@ -333,6 +333,55 @@ function extractManpages() {
 // Generate output (src/generated/sourceData.ts)
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// SEO descriptions per doc / manpage. We pull the H1's trailing blockquote
+// (the one-line synopsis convention every doc/manpage in this repo uses) and
+// fall back to the first non-heading paragraph. This keeps per-route
+// <meta name="description"> in lockstep with the source instead of being
+// hand-maintained.
+// ---------------------------------------------------------------------------
+
+function extractSeoDescription(md, fallback) {
+  // Drop the top H1 line, then walk paragraphs.
+  const body = md.replace(/^#\s+.+\n/, "");
+  const blockquote = body.match(/^>\s+(.+(?:\n>\s+.+)*)/m);
+  let candidate = "";
+  if (blockquote) {
+    candidate = blockquote[1]
+      .replace(/\n>\s+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  } else {
+    const para = body.match(/^(?!#|>|```|\||\s*[-*]|\s*\d+\.)([^\n]+(?:\n(?!\s*\n)[^\n]+)*)/m);
+    if (para) {
+      candidate = para[1].replace(/\s+/g, " ").trim().slice(0, 240);
+    }
+  }
+
+  // Reject placeholder / stub descriptions: too short, or trailing colon
+  // (which usually means "the next thing is a list, not a description").
+  if (
+    !candidate ||
+    candidate.length < 60 ||
+    /[:：]\s*$/.test(candidate)
+  ) {
+    return fallback;
+  }
+  return candidate;
+}
+
+function lastModForPath(relPath) {
+  try {
+    const iso = execSync(`git log -1 --format=%cI -- ${relPath}`, {
+      cwd: REPO_ROOT,
+      encoding: "utf-8",
+    }).trim();
+    return iso ? iso.slice(0, 10) : null;
+  } catch {
+    return null;
+  }
+}
+
 function generate() {
   const version = extractVersion();
   const lastUpdated = extractLastUpdated();
@@ -411,7 +460,35 @@ export const manpages: DocPage[] = ${lit(manpages)};
   const outPath = join(dest, "sourceData.ts");
   writeFileSync(outPath, output, "utf-8");
 
+  // Sidecar for the build-time SEO splicer. JSON is far easier to consume
+  // from `render-route-heads.mjs` than the TS bundle above.
+  const seoData = {
+    version,
+    lastUpdated,
+    docs: docs.map((d) => ({
+      slug: d.slug,
+      title: d.title,
+      description: extractSeoDescription(
+        d.content,
+        `${d.title} guide for ztf — the Rust CLI for agent-assisted end-to-end testing of TOML scenario files with arrange/act/assert stages and an AI-driven verdict.`,
+      ),
+      lastmod: lastModForPath(`docs/${d.slug}.md`),
+    })),
+    manpages: manpages.map((m) => ({
+      slug: m.slug,
+      title: m.title,
+      description: extractSeoDescription(
+        m.content,
+        `Reference manpage for \`${m.title}\` — part of the ztf CLI for agent-assisted end-to-end testing.`,
+      ),
+      lastmod: lastModForPath(`man/${m.slug}.md`),
+    })),
+  };
+  const seoPath = join(dest, "seoData.json");
+  writeFileSync(seoPath, JSON.stringify(seoData, null, 2), "utf-8");
+
   console.log(`[extract] wrote ${outPath}`);
+  console.log(`[extract] wrote ${seoPath}`);
   console.log(`[extract]   source:    ${LATEST_TAG || "working tree"}`);
   console.log(`[extract]   version:   ${version}`);
   console.log(`[extract]   commands:  ${commands.length}`);
