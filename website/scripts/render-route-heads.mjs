@@ -195,14 +195,28 @@ function escapeAttr(s) {
 // Replace everything from <title>…</title> through the closing </script> of
 // the existing JSON-LD block with our route-specific block. The favicon /
 // viewport / charset above and the body root below are preserved verbatim.
+//
+// Vite injects bundled asset tags (<script type="module" src="/assets/…">
+// and <link rel="stylesheet" href="/assets/…">) into the <head>; without
+// preserving them the page renders blank because the JS bundle never loads.
 function splice(html, headBlock) {
-  // Find a stable anchor (the favicon link) and replace from there to the
-  // last </script> inside <head>.
   const headEnd = html.indexOf("</head>");
   if (headEnd === -1) throw new Error("no </head> in dist/index.html");
   const titleStart = html.indexOf("<title>");
   if (titleStart === -1) throw new Error("no <title> in dist/index.html");
-  return html.slice(0, titleStart) + headBlock + "\n  " + html.slice(headEnd);
+  const headInner = html.slice(titleStart, headEnd);
+  const assetTags = [
+    ...headInner.matchAll(
+      /<script\b[^>]*\bsrc=["'][^"']*["'][^>]*>\s*<\/script>/gi,
+    ),
+    ...headInner.matchAll(
+      /<link\b[^>]*\brel=["'](?:stylesheet|modulepreload|preload)["'][^>]*\/?>/gi,
+    ),
+  ]
+    .map((m) => m[0])
+    .join("\n    ");
+  const preserved = assetTags ? `\n    ${assetTags}\n  ` : "\n  ";
+  return html.slice(0, titleStart) + headBlock + preserved + html.slice(headEnd);
 }
 
 // ---------------------------------------------------------------------------
